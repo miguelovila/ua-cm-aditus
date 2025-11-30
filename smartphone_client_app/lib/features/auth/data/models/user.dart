@@ -23,12 +23,7 @@ class User extends Equatable {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'email': email,
-      'full_name': fullName,
-      'role': role,
-    };
+    return {'id': id, 'email': email, 'full_name': fullName, 'role': role};
   }
 
   @override

@@ -6,10 +6,7 @@ class LoginResponse extends Equatable {
   final User user;
   final TokenPair tokens;
 
-  const LoginResponse({
-    required this.user,
-    required this.tokens,
-  });
+  const LoginResponse({required this.user, required this.tokens});
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
     return LoginResponse(

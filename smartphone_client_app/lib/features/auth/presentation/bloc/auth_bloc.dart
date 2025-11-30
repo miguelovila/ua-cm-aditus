@@ -14,8 +14,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SecureStorageService _storage = SecureStorageService();
 
   AuthBloc({ApiClient? apiClient})
-      : _apiClient = apiClient ?? ApiClient(),
-        super(AuthInitial()) {
+    : _apiClient = apiClient ?? ApiClient(),
+      super(AuthInitial()) {
     on<AuthInitializeRequested>(_onAuthInitializeRequested);
     on<AuthLoginRequested>(_onAuthLoginRequested);
     on<AuthLogoutRequested>(_onAuthLogoutRequested);
@@ -46,6 +46,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         final user = User.fromJson(response['user'] ?? response);
 
+        // Save user data to storage
+        await _storage.saveUserData(user.toJson());
+
         emit(
           AuthSuccess(
             user: user,
@@ -70,6 +73,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             );
 
             final user = User.fromJson(response['user'] ?? response);
+
+            // Save user data to storage
+            await _storage.saveUserData(user.toJson());
 
             emit(
               AuthSuccess(
@@ -110,8 +116,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       final loginResponse = LoginResponse.fromJson(responseData);
 
+      // Save tokens and user data to secure storage
       await _storage.saveAccessToken(loginResponse.tokens.accessToken);
       await _storage.saveRefreshToken(loginResponse.tokens.refreshToken);
+      await _storage.saveUserData(loginResponse.user.toJson());
 
       emit(
         AuthSuccess(
@@ -133,8 +141,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    // Only clear tokens on logout, keep PIN, device, and keys
+    // Clear tokens and user data on logout, but keep PIN, device, and keys
     await _storage.clearTokens();
+    await _storage.clearUserData();
     emit(AuthUnauthenticated());
   }
 
