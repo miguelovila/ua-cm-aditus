@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_cubit.dart';
+import 'core/theme/theme_preferences.dart';
 import 'core/navigation/app_router.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/login_screen.dart';
 import 'features/auth/presentation/pin_setup_screen.dart';
 import 'features/auth/presentation/pin_verification_screen.dart';
 import 'features/device/presentation/device_registration_screen.dart';
-import 'screens/home_screen.dart';
+import 'features/home/presentation/screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +22,15 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AppView();
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => ThemeCubit()),
+        BlocProvider(
+          create: (context) => AuthBloc()..add(AuthInitializeRequested()),
+        ),
+      ],
+      child: const AppView(),
+    );
   }
 }
 
@@ -36,42 +46,64 @@ class _AppViewState extends State<AppView> {
 
   @override
   Widget build(BuildContext context) {
-    return DynamicColorBuilder(
-      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-        // Use dynamic colors if available, otherwise use defaults
-        final lightColorScheme = lightDynamic?.harmonized();
-        final darkColorScheme = darkDynamic?.harmonized();
+    return BlocBuilder<ThemeCubit, ThemeState>(
+      builder: (context, themeState) {
+        final preferences = themeState.preferences;
 
-        return BlocProvider(
-          create: (context) => AuthBloc()..add(AuthInitializeRequested()),
-          child: BlocListener<AuthBloc, AuthState>(
-            listener: (context, state) {
-              // Listen to auth state changes globally and handle navigation
-              if (state is AuthUnauthenticated) {
-                // User logged out or forgot PIN - reset navigation to root
-                _navigatorKey.currentState?.pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const AppInitializer()),
-                  (route) => false,
-                );
-              }
-            },
-            child: MaterialApp(
-              navigatorKey: _navigatorKey,
-              title: 'Aditus',
-              theme: AppTheme.light(lightColorScheme),
-              darkTheme: AppTheme.dark(darkColorScheme),
-              themeMode: ThemeMode.system,
-              debugShowCheckedModeBanner: false,
-              home: const AppInitializer(),
-              routes: {
-                '/login': (context) => const LoginScreen(),
-                '/pin-setup': (context) => const PinSetupScreen(),
-                '/pin-verification': (context) => const PinVerificationScreen(),
-                '/device-registration': (context) => const DeviceRegistrationScreen(),
-                '/home': (context) => const HomeScreen(),
+        return DynamicColorBuilder(
+          builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+            // Determine color schemes based on preferences
+            ColorScheme? lightColorScheme;
+            ColorScheme? darkColorScheme;
+
+            if (preferences.colorScheme == AppColorScheme.dynamic) {
+              // Use Material You dynamic colors if available
+              lightColorScheme = lightDynamic?.harmonized();
+              darkColorScheme = darkDynamic?.harmonized();
+            } else {
+              // Use custom seed color
+              final seedColor = preferences.seedColor!;
+              lightColorScheme = ColorScheme.fromSeed(
+                seedColor: seedColor,
+                brightness: Brightness.light,
+              );
+              darkColorScheme = ColorScheme.fromSeed(
+                seedColor: seedColor,
+                brightness: Brightness.dark,
+              );
+            }
+
+            return BlocListener<AuthBloc, AuthState>(
+              listener: (context, state) {
+                // Listen to auth state changes globally and handle navigation
+                if (state is AuthUnauthenticated) {
+                  // User logged out or forgot PIN - reset navigation to root
+                  _navigatorKey.currentState?.pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const AppInitializer()),
+                    (route) => false,
+                  );
+                }
               },
-            ),
-          ),
+              child: MaterialApp(
+                navigatorKey: _navigatorKey,
+                title: 'Aditus',
+                theme: AppTheme.light(lightColorScheme),
+                darkTheme: AppTheme.dark(darkColorScheme),
+                themeMode: preferences.materialThemeMode,
+                debugShowCheckedModeBanner: false,
+                home: const AppInitializer(),
+                routes: {
+                  '/login': (context) => const LoginScreen(),
+                  '/pin-setup': (context) => const PinSetupScreen(),
+                  '/pin-verification': (context) =>
+                      const PinVerificationScreen(),
+                  '/device-registration': (context) =>
+                      const DeviceRegistrationScreen(),
+                  '/home': (context) => const HomeScreen(),
+                },
+              ),
+            );
+          },
         );
       },
     );
@@ -88,9 +120,7 @@ class AppInitializer extends StatelessWidget {
         if (state is AuthInitializing || state is AuthInitial) {
           // Show loading screen while determining route
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -106,9 +136,7 @@ class AppInitializer extends StatelessWidget {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Scaffold(
-                  body: Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  body: Center(child: CircularProgressIndicator()),
                 );
               }
 
@@ -128,7 +156,9 @@ class AppInitializer extends StatelessWidget {
                         const SizedBox(height: 16),
                         FilledButton(
                           onPressed: () {
-                            context.read<AuthBloc>().add(AuthInitializeRequested());
+                            context.read<AuthBloc>().add(
+                              AuthInitializeRequested(),
+                            );
                           },
                           child: const Text('Retry'),
                         ),

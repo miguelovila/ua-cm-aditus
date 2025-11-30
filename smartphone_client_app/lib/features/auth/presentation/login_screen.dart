@@ -212,9 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Expanded(
                               child: Text(
                                 'Development Mode\nTap to fill with default admin credentials',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: colorScheme.onTertiaryContainer,
                                       fontWeight: FontWeight.w500,

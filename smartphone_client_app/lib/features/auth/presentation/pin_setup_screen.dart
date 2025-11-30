@@ -4,7 +4,7 @@ import 'package:smartphone_client_app/core/security/biometric_service.dart';
 import 'package:smartphone_client_app/core/security/secure_storage_service.dart';
 import 'package:smartphone_client_app/core/ui/snackbar_helper.dart';
 import 'package:smartphone_client_app/features/device/presentation/device_registration_screen.dart';
-import 'package:smartphone_client_app/screens/home_screen.dart';
+import 'package:smartphone_client_app/features/home/presentation/screens/home_screen.dart';
 
 class PinSetupScreen extends StatefulWidget {
   const PinSetupScreen({super.key});
@@ -77,10 +77,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
       });
     } else {
       if (mounted) {
-        SnackbarHelper.showError(
-          context,
-          'Biometric authentication failed',
-        );
+        SnackbarHelper.showError(context, 'Biometric authentication failed');
       }
     }
   }
@@ -169,17 +166,17 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                 Text(
                   'Secure Your Account',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Create a PIN to protect your account and sensitive actions',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 48),
@@ -271,9 +268,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                         Expanded(
                           child: Text(
                             _errorMessage!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: colorScheme.onErrorContainer),
                           ),
                         ),
@@ -286,7 +281,9 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                   Card(
                     child: SwitchListTile(
                       title: Text('Enable $_biometricTypeName'),
-                      subtitle: Text('Use $_biometricTypeName for quick access'),
+                      subtitle: Text(
+                        'Use $_biometricTypeName for quick access',
+                      ),
                       secondary: const Icon(Icons.fingerprint),
                       value: _enableBiometrics,
                       onChanged: _isLoading ? null : _handleBiometricToggle,
@@ -314,9 +311,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                         Expanded(
                           child: Text(
                             'Biometric authentication is not available on this device',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ),
@@ -338,7 +333,9 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                             ),
                           )
                         : const Icon(Icons.check),
-                    label: Text(_isLoading ? 'Setting up...' : 'Complete Setup'),
+                    label: Text(
+                      _isLoading ? 'Setting up...' : 'Complete Setup',
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -363,9 +360,7 @@ class _PinSetupScreenState extends State<PinSetupScreen> {
                       Expanded(
                         child: Text(
                           'Your PIN is stored securely and will be required when performing sensitive actions like unlocking doors.',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
                       ),

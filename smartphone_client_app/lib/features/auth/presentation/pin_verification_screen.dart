@@ -4,7 +4,7 @@ import 'package:smartphone_client_app/core/security/pin_service.dart';
 import 'package:smartphone_client_app/core/security/biometric_service.dart';
 import 'package:smartphone_client_app/core/ui/snackbar_helper.dart';
 import 'package:smartphone_client_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:smartphone_client_app/screens/home_screen.dart';
+import 'package:smartphone_client_app/features/home/presentation/screens/home_screen.dart';
 
 class PinVerificationScreen extends StatefulWidget {
   const PinVerificationScreen({super.key});
@@ -98,7 +98,8 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
         setState(() {
           _isLoading = false;
           _failedAttempts++;
-          _errorMessage = 'Incorrect PIN. ${_maxAttempts - _failedAttempts} attempts remaining.';
+          _errorMessage =
+              'Incorrect PIN. ${_maxAttempts - _failedAttempts} attempts remaining.';
           _pinController.clear();
         });
 
@@ -124,9 +125,9 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
   }
 
   void _navigateToHome() {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-    );
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
   }
 
   void _handleForgotPin() {
@@ -159,137 +160,131 @@ class _PinVerificationScreenState extends State<PinVerificationScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-        body: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Icon(
-                    Icons.lock_person,
-                    size: 90,
-                    color: colorScheme.primary,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Icon(Icons.lock_person, size: 90, color: colorScheme.primary),
+                const SizedBox(height: 32),
+                Text(
+                  'Welcome Back',
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
                   ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Welcome Back',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                    textAlign: TextAlign.center,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Enter your PIN to continue',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Enter your PIN to continue',
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 48),
-                  TextFormField(
-                    controller: _pinController,
-                    keyboardType: TextInputType.number,
-                    obscureText: _obscurePin,
-                    textInputAction: TextInputAction.done,
-                    enabled: !_isLoading,
-                    maxLength: 6,
-                    autofocus: !_biometricsAvailable,
-                    onFieldSubmitted: (_) => _handlePinVerification(),
-                    decoration: InputDecoration(
-                      labelText: 'Enter PIN',
-                      hintText: 'Enter your PIN',
-                      prefixIcon: const Icon(Icons.lock_outlined),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePin
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePin = !_obscurePin;
-                          });
-                        },
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 48),
+                TextFormField(
+                  controller: _pinController,
+                  keyboardType: TextInputType.number,
+                  obscureText: _obscurePin,
+                  textInputAction: TextInputAction.done,
+                  enabled: !_isLoading,
+                  maxLength: 6,
+                  autofocus: !_biometricsAvailable,
+                  onFieldSubmitted: (_) => _handlePinVerification(),
+                  decoration: InputDecoration(
+                    labelText: 'Enter PIN',
+                    hintText: 'Enter your PIN',
+                    prefixIcon: const Icon(Icons.lock_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePin
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                       ),
-                      counterText: '',
-                    ),
-                    onChanged: (_) {
-                      if (_errorMessage != null) {
+                      onPressed: () {
                         setState(() {
-                          _errorMessage = null;
+                          _obscurePin = !_obscurePin;
                         });
-                      }
-                    },
+                      },
+                    ),
+                    counterText: '',
                   ),
-                  if (_errorMessage != null) ...[
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colorScheme.errorContainer.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: colorScheme.error, width: 1),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            color: colorScheme.onErrorContainer,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(color: colorScheme.onErrorContainer),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    height: 50,
-                    child: FilledButton.icon(
-                      onPressed: _isLoading ? null : _handlePinVerification,
-                      icon: _isLoading
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colorScheme.onPrimary,
-                              ),
-                            )
-                          : const Icon(Icons.check),
-                      label: Text(_isLoading ? 'Verifying...' : 'Unlock'),
-                    ),
-                  ),
+                  onChanged: (_) {
+                    if (_errorMessage != null) {
+                      setState(() {
+                        _errorMessage = null;
+                      });
+                    }
+                  },
+                ),
+                if (_errorMessage != null) ...[
                   const SizedBox(height: 16),
-                  if (_biometricsAvailable)
-                    OutlinedButton.icon(
-                      onPressed: _isLoading ? null : _attemptBiometricAuth,
-                      icon: const Icon(Icons.fingerprint),
-                      label: const Text('Use Biometric'),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.errorContainer.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: colorScheme.error, width: 1),
                     ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: _isLoading ? null : _handleForgotPin,
-                    child: const Text('Forgot PIN?'),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: colorScheme.onErrorContainer,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _errorMessage!,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: colorScheme.onErrorContainer),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
-              ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  height: 50,
+                  child: FilledButton.icon(
+                    onPressed: _isLoading ? null : _handlePinVerification,
+                    icon: _isLoading
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.onPrimary,
+                            ),
+                          )
+                        : const Icon(Icons.check),
+                    label: Text(_isLoading ? 'Verifying...' : 'Unlock'),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (_biometricsAvailable)
+                  OutlinedButton.icon(
+                    onPressed: _isLoading ? null : _attemptBiometricAuth,
+                    icon: const Icon(Icons.fingerprint),
+                    label: const Text('Use Biometric'),
+                  ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: _isLoading ? null : _handleForgotPin,
+                  child: const Text('Forgot PIN?'),
+                ),
+              ],
             ),
           ),
         ),
+      ),
     );
   }
 }
