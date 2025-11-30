@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureStorageService {
@@ -18,7 +19,9 @@ class SecureStorageService {
   static const String _keyDeviceId = 'device_id';
   static const String _keyAccessToken = 'access_token';
   static const String _keyRefreshToken = 'refresh_token';
+  static const String _keyUserData = 'user_data';
   static const String _keyBiometricEnabled = 'biometric_enabled';
+  static const String _keyThemePreferences = 'theme_preferences';
 
   Future<void> savePinHash(String hash) async {
     await _storage.write(key: _keyPinHash, value: hash);
@@ -104,5 +107,41 @@ class SecureStorageService {
     await _storage.delete(key: _keyPinHash);
     await _storage.delete(key: _keyPinSalt);
     await _storage.delete(key: _keyBiometricEnabled);
+  }
+
+  Future<void> saveUserData(Map<String, dynamic> userData) async {
+    final jsonString = jsonEncode(userData);
+    await _storage.write(key: _keyUserData, value: jsonString);
+  }
+
+  Future<Map<String, dynamic>?> getUserData() async {
+    final jsonString = await _storage.read(key: _keyUserData);
+    if (jsonString == null) return null;
+
+    try {
+      return jsonDecode(jsonString) as Map<String, dynamic>;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> clearUserData() async {
+    await _storage.delete(key: _keyUserData);
+  }
+
+  Future<void> saveThemePreferences(Map<String, dynamic> preferences) async {
+    final jsonString = jsonEncode(preferences);
+    await _storage.write(key: _keyThemePreferences, value: jsonString);
+  }
+
+  Future<Map<String, dynamic>?> getThemePreferences() async {
+    final jsonString = await _storage.read(key: _keyThemePreferences);
+    if (jsonString == null) return null;
+
+    try {
+      return jsonDecode(jsonString) as Map<String, dynamic>;
+    } catch (e) {
+      return null;
+    }
   }
 }
