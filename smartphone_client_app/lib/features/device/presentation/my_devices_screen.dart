@@ -240,7 +240,9 @@ class _DeviceCard extends StatelessWidget {
                 _InfoChip(
                   icon: Icons.access_time,
                   label: 'Last Used',
-                  value: DateFormatter.formatRelativeDate(device.lastUsedAt),
+                  value: isCurrentDevice
+                      ? 'Now'
+                      : DateFormatter.formatRelativeDate(device.lastUsedAt),
                 ),
               ],
             ),
