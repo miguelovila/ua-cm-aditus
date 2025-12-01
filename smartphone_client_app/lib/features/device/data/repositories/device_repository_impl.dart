@@ -1,4 +1,3 @@
-import '../../../../core/api/api_client.dart';
 import '../../../../core/api/device_api_service.dart';
 import '../../../../core/security/secure_storage_service.dart';
 import '../models/device.dart';
@@ -6,15 +5,12 @@ import 'device_repository.dart';
 
 class DeviceRepositoryImpl implements DeviceRepository {
   final DeviceApiService _deviceApiService;
-  final ApiClient _apiClient;
   final SecureStorageService _storageService;
 
   DeviceRepositoryImpl({
     DeviceApiService? deviceApiService,
-    ApiClient? apiClient,
     SecureStorageService? storageService,
   }) : _deviceApiService = deviceApiService ?? DeviceApiService(),
-       _apiClient = apiClient ?? ApiClient(),
        _storageService = storageService ?? SecureStorageService();
 
   @override
@@ -37,7 +33,7 @@ class DeviceRepositoryImpl implements DeviceRepository {
         throw Exception('No access token found');
       }
 
-      final response = await _apiClient.registerDevice(
+      final response = await _deviceApiService.registerDevice(
         deviceName: deviceName,
         publicKey: publicKey,
         accessToken: accessToken,

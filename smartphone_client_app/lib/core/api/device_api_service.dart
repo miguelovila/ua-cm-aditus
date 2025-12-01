@@ -73,4 +73,46 @@ class DeviceApiService {
       throw Exception(body['error'] ?? 'Failed to fetch devices');
     }
   }
+
+  /// Register a new device
+  /// Returns the response containing device data
+  /// Throws exception on failure
+  Future<Map<String, dynamic>> registerDevice({
+    required String deviceName,
+    required String publicKey,
+    required String accessToken,
+  }) async {
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}/${ApiConstants.devices}',
+    );
+
+    final response = await http
+        .post(
+          url,
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({
+            'name': deviceName,
+            'public_key': publicKey,
+          }),
+        )
+        .timeout(ApiConstants.requestTimeout);
+
+    final body = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return body;
+    } else {
+      // Extract error message
+      String errorMessage = 'Request failed';
+      if (body.containsKey('error')) {
+        errorMessage = body['error'] as String;
+      } else if (body.containsKey('message')) {
+        errorMessage = body['message'] as String;
+      }
+      throw Exception(errorMessage);
+    }
+  }
 }

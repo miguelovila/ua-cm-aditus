@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:smartphone_client_app/core/api/api_client.dart';
+import 'package:smartphone_client_app/core/api/auth_api_service.dart';
+import 'package:smartphone_client_app/core/api/user_api_service.dart';
 import 'package:smartphone_client_app/core/security/secure_storage_service.dart';
 import '../../data/models/user.dart';
 import '../../data/models/login_response.dart';
@@ -10,12 +11,16 @@ part 'auth_event.dart';
 part 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final ApiClient _apiClient;
+  final AuthApiService _authApiService;
+  final UserApiService _userApiService;
   final SecureStorageService _storage = SecureStorageService();
 
-  AuthBloc({ApiClient? apiClient})
-    : _apiClient = apiClient ?? ApiClient(),
-      super(AuthInitial()) {
+  AuthBloc({
+    AuthApiService? authApiService,
+    UserApiService? userApiService,
+  })  : _authApiService = authApiService ?? AuthApiService(),
+        _userApiService = userApiService ?? UserApiService(),
+        super(AuthInitial()) {
     on<AuthInitializeRequested>(_onAuthInitializeRequested);
     on<AuthLoginRequested>(_onAuthLoginRequested);
     on<AuthLogoutRequested>(_onAuthLogoutRequested);
@@ -40,7 +45,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       // Try to fetch current user data to verify token is valid
       try {
-        final response = await _apiClient.getCurrentUser(
+        final response = await _userApiService.getCurrentUser(
           accessToken: accessToken,
         );
 
@@ -56,11 +61,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             refreshToken: refreshToken,
           ),
         );
-      } on ApiException catch (e) {
+      } catch (e) {
         // Token might be expired, try to refresh
-        if (e.statusCode == 401) {
+        final errorMessage = e.toString();
+        if (errorMessage.contains('401') || errorMessage.contains('Unauthorized')) {
           try {
-            final refreshResponse = await _apiClient.refreshToken(
+            final refreshResponse = await _authApiService.refreshToken(
               refreshToken: refreshToken,
             );
 
@@ -68,7 +74,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             await _storage.saveAccessToken(newAccessToken);
 
             // Try fetching user again with new token
-            final response = await _apiClient.getCurrentUser(
+            final response = await _userApiService.getCurrentUser(
               accessToken: newAccessToken,
             );
 
@@ -109,7 +115,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     try {
-      final responseData = await _apiClient.login(
+      final responseData = await _authApiService.login(
         email: event.email,
         password: event.password,
       );
@@ -128,11 +134,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           refreshToken: loginResponse.tokens.refreshToken,
         ),
       );
-    } on ApiException catch (e) {
-      emit(AuthFailure(message: e.message));
     } catch (e) {
       emit(
-        AuthFailure(message: 'An unexpected error occurred. Please try again.'),
+        AuthFailure(message: e.toString().replaceFirst('Exception: ', '')),
       );
     }
   }

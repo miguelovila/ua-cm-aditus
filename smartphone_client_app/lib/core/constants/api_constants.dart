@@ -1,7 +1,7 @@
 class ApiConstants {
   // Base URL for API endpoints
   // static const String baseUrl = 'http://10.0.2.2:5000/api';
-  static const String baseUrl = 'http://10.10.0.100:5000/api';
+  static const String baseUrl = 'http://10.10.0.159:5000/api';
 
   // Timeout durations
   static const Duration requestTimeout = Duration(seconds: 15);
