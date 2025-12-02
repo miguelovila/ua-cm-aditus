@@ -1,8 +1,6 @@
-import 'dart:convert';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:smartphone_client_app/core/security/secure_storage_service.dart';
+import 'package:smartphone_client_app/core/ui/widgets/gravatar_avatar.dart';
 import 'package:smartphone_client_app/features/auth/data/models/user.dart';
 
 class UserCard extends StatefulWidget {
@@ -22,16 +20,6 @@ class _UserCardState extends State<UserCard> {
   void initState() {
     super.initState();
     _loadUserData();
-  }
-
-  String _getGravatarUrl(String email) {
-    try {
-      final normalized = email.trim().toLowerCase();
-      final hash = md5.convert(utf8.encode(normalized));
-      return 'https://www.gravatar.com/avatar/$hash?s=200&d=identicon';
-    } catch (e) {
-      return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?s=200&d=identicon';
-    }
   }
 
   Future<void> _loadUserData() async {
@@ -100,7 +88,10 @@ class _UserCardState extends State<UserCard> {
         child: Row(
           children: [
             // Avatar
-            _buildProfilePicture(radius: 30),
+            GravatarAvatar(
+              email: _user!.email,
+              radius: 30,
+            ),
 
             const SizedBox(width: 16),
 
@@ -166,33 +157,6 @@ class _UserCardState extends State<UserCard> {
           fontSize: 11,
           fontWeight: FontWeight.bold,
           letterSpacing: 0.5,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfilePicture({required double radius}) {
-    final gravatarUrl = _getGravatarUrl(_user!.email);
-    return CircleAvatar(
-      radius: radius,
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-      child: ClipOval(
-        child: CachedNetworkImage(
-          imageUrl: gravatarUrl,
-          width: radius * 2,
-          height: radius * 2,
-          fit: BoxFit.cover,
-          placeholder: (context, url) => Center(
-            child: SizedBox(
-              width: 16,
-              height: 16,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-          errorWidget: (context, url, error) => Icon(
-            Icons.person,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
         ),
       ),
     );

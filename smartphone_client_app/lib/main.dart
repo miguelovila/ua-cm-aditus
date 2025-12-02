@@ -11,6 +11,18 @@ import 'features/auth/presentation/pin_setup_screen.dart';
 import 'features/auth/presentation/pin_verification_screen.dart';
 import 'features/device/presentation/device_registration_screen.dart';
 import 'features/home/presentation/screens/home_screen.dart';
+import 'features/admin/group_management/presentation/bloc/group_management_bloc.dart';
+import 'features/admin/group_management/presentation/screens/group_list_screen.dart';
+import 'features/admin/group_management/presentation/screens/group_create_screen.dart';
+import 'features/admin/group_management/presentation/screens/group_detail_screen.dart';
+import 'features/admin/group_management/presentation/screens/group_edit_screen.dart';
+import 'features/group/data/models/group.dart';
+import 'features/admin/user_management/presentation/bloc/user_management_bloc.dart';
+import 'features/admin/user_management/presentation/screens/user_list_screen.dart';
+import 'features/admin/user_management/presentation/screens/user_create_screen.dart';
+import 'features/admin/user_management/presentation/screens/user_detail_screen.dart';
+import 'features/admin/user_management/presentation/screens/user_edit_screen.dart';
+import 'features/auth/data/models/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +55,44 @@ class AppView extends StatefulWidget {
 
 class _AppViewState extends State<AppView> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  Widget _buildAdminGroupRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case '/admin/groups':
+        return const GroupListScreen();
+      case '/admin/groups/create':
+        return const GroupCreateScreen();
+      case '/admin/groups/detail':
+        final groupId = settings.arguments as int;
+        return GroupDetailScreen(groupId: groupId);
+      case '/admin/groups/edit':
+        final group = settings.arguments as Group;
+        return GroupEditScreen(group: group);
+      default:
+        return const Scaffold(
+          body: Center(child: Text('Route not found')),
+        );
+    }
+  }
+
+  Widget _buildAdminUserRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case '/admin/users':
+        return const UserListScreen();
+      case '/admin/users/create':
+        return const UserCreateScreen();
+      case '/admin/users/detail':
+        final userId = settings.arguments as int;
+        return UserDetailScreen(userId: userId);
+      case '/admin/users/edit':
+        final user = settings.arguments as User;
+        return UserEditScreen(user: user);
+      default:
+        return const Scaffold(
+          body: Center(child: Text('Route not found')),
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +150,29 @@ class _AppViewState extends State<AppView> {
                   '/device-registration': (context) =>
                       const DeviceRegistrationScreen(),
                   '/home': (context) => const HomeScreen(),
+                },
+                onGenerateRoute: (settings) {
+                  // Handle admin group management routes with BLoC provider
+                  if (settings.name?.startsWith('/admin/groups') ?? false) {
+                    return MaterialPageRoute(
+                      builder: (context) => BlocProvider(
+                        create: (context) => GroupManagementBloc(),
+                        child: _buildAdminGroupRoute(settings),
+                      ),
+                      settings: settings,
+                    );
+                  }
+                  // Handle admin user management routes with BLoC provider
+                  if (settings.name?.startsWith('/admin/users') ?? false) {
+                    return MaterialPageRoute(
+                      builder: (context) => BlocProvider(
+                        create: (context) => UserManagementBloc(),
+                        child: _buildAdminUserRoute(settings),
+                      ),
+                      settings: settings,
+                    );
+                  }
+                  return null;
                 },
               ),
             );
