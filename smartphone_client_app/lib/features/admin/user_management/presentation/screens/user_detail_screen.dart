@@ -269,12 +269,16 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                             title: const Text('Manage Devices'),
                             subtitle: const Text('View and manage user devices'),
                             trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Device management coming soon'),
-                                ),
+                            onTap: () async {
+                              final result = await Navigator.pushNamed(
+                                context,
+                                '/admin/users/devices',
+                                arguments: user,
                               );
+                              // Reload if devices were modified
+                              if (result == true && context.mounted) {
+                                _loadUserDetails();
+                              }
                             },
                           ),
                           const Divider(height: 1),
@@ -283,12 +287,16 @@ class _UserDetailScreenState extends State<UserDetailScreen> {
                             title: const Text('Manage Groups'),
                             subtitle: const Text('View user groups and memberships'),
                             trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Group management coming soon'),
-                                ),
+                            onTap: () async {
+                              final result = await Navigator.pushNamed(
+                                context,
+                                '/admin/users/groups',
+                                arguments: user,
                               );
+                              // Reload if groups were modified
+                              if (result == true && context.mounted) {
+                                _loadUserDetails();
+                              }
                             },
                           ),
                           const Divider(height: 1),

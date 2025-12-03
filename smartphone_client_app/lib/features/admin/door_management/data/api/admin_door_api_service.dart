@@ -2,24 +2,25 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:smartphone_client_app/core/constants/api_constants.dart';
 import 'package:smartphone_client_app/core/security/secure_storage_service.dart';
-import 'package:smartphone_client_app/features/auth/data/models/user.dart';
-import '../models/user_create_request.dart';
-import '../models/user_update_request.dart';
+import 'package:smartphone_client_app/features/admin/door_management/data/models/door.dart';
+import 'package:smartphone_client_app/features/admin/door_management/data/models/door_create_request.dart';
+import 'package:smartphone_client_app/features/admin/door_management/data/models/door_update_request.dart';
 
-class AdminUserApiService {
+class AdminDoorApiService {
   final SecureStorageService _secureStorage = SecureStorageService();
 
-  /// Get all users (admin only)
-  /// Endpoint: GET /api/users/
-  Future<List<User>> getAllUsers() async {
+  /// Get all doors (admin only)
+  /// Endpoint: GET /api/doors/?include_inactive=true
+  Future<List<Door>> getAllDoors() async {
     final accessToken = await _secureStorage.getAccessToken();
-
     if (accessToken == null) {
       throw Exception('No access token found');
     }
 
-    final url = Uri.parse('${ApiConstants.baseUrl}/users/');
-
+    // Add query parameter to include inactive doors for admin
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}/${ApiConstants.doors}?include_inactive=true',
+    );
     final response = await http
         .get(
           url,
@@ -32,26 +33,23 @@ class AdminUserApiService {
 
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body);
-      final usersJson = List<Map<String, dynamic>>.from(body['users']);
-      return usersJson.map((json) => User.fromJson(json)).toList();
+      final doorsJson = List<Map<String, dynamic>>.from(body['doors']);
+      return doorsJson.map((json) => Door.fromJson(json)).toList();
     } else {
       final body = jsonDecode(response.body);
-      throw Exception(body['error'] ?? 'Failed to fetch users');
+      throw Exception(body['error'] ?? 'Failed to fetch doors');
     }
   }
 
-  /// Create a new user (admin only)
-  /// Endpoint: POST /api/users/
-  Future<User> createUser(UserCreateRequest request) async {
+  /// Create a new door
+  /// Endpoint: POST /api/doors/
+  Future<Door> createDoor(DoorCreateRequest request) async {
     final accessToken = await _secureStorage.getAccessToken();
-
     if (accessToken == null) {
       throw Exception('No access token found');
     }
 
-    final url = Uri.parse('${ApiConstants.baseUrl}/users/');
-
-
+    final url = Uri.parse('${ApiConstants.baseUrl}/${ApiConstants.doors}');
     final response = await http
         .post(
           url,
@@ -65,29 +63,24 @@ class AdminUserApiService {
 
     if (response.statusCode == 201) {
       final body = jsonDecode(response.body);
-      return User.fromJson(body['user']);
+      return Door.fromJson(body['door']);
     } else {
-      // Try to parse as JSON first, fallback to raw body if HTML
-      try {
-        final body = jsonDecode(response.body);
-        throw Exception(body['error'] ?? 'Failed to create user');
-      } catch (e) {
-        throw Exception('API Error (${response.statusCode}): ${response.body.substring(0, 200)}...');
-      }
+      final body = jsonDecode(response.body);
+      throw Exception(body['error'] ?? 'Failed to create door');
     }
   }
 
-  /// Get user details by ID
-  /// Endpoint: GET /api/users/:id
-  Future<User> getUserById(int userId) async {
+  /// Get door by ID
+  /// Endpoint: GET /api/doors/:id
+  Future<Door> getDoorById(int doorId) async {
     final accessToken = await _secureStorage.getAccessToken();
-
     if (accessToken == null) {
       throw Exception('No access token found');
     }
 
-    final url = Uri.parse('${ApiConstants.baseUrl}/users/$userId');
-
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}/${ApiConstants.doors}$doorId',
+    );
     final response = await http
         .get(
           url,
@@ -100,24 +93,24 @@ class AdminUserApiService {
 
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body);
-      return User.fromJson(body['user']);
+      return Door.fromJson(body['door']);
     } else {
       final body = jsonDecode(response.body);
-      throw Exception(body['error'] ?? 'Failed to fetch user details');
+      throw Exception(body['error'] ?? 'Failed to fetch door');
     }
   }
 
-  /// Update user details
-  /// Endpoint: PUT /api/users/:id
-  Future<User> updateUser(int userId, UserUpdateRequest request) async {
+  /// Update door
+  /// Endpoint: PUT /api/doors/:id
+  Future<Door> updateDoor(int doorId, DoorUpdateRequest request) async {
     final accessToken = await _secureStorage.getAccessToken();
-
     if (accessToken == null) {
       throw Exception('No access token found');
     }
 
-    final url = Uri.parse('${ApiConstants.baseUrl}/users/$userId');
-
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}/${ApiConstants.doors}$doorId',
+    );
     final response = await http
         .put(
           url,
@@ -131,24 +124,24 @@ class AdminUserApiService {
 
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body);
-      return User.fromJson(body['user']);
+      return Door.fromJson(body['door']);
     } else {
       final body = jsonDecode(response.body);
-      throw Exception(body['error'] ?? 'Failed to update user');
+      throw Exception(body['error'] ?? 'Failed to update door');
     }
   }
 
-  /// Delete a user
-  /// Endpoint: DELETE /api/users/:id
-  Future<void> deleteUser(int userId) async {
+  /// Delete door
+  /// Endpoint: DELETE /api/doors/:id
+  Future<void> deleteDoor(int doorId) async {
     final accessToken = await _secureStorage.getAccessToken();
-
     if (accessToken == null) {
       throw Exception('No access token found');
     }
 
-    final url = Uri.parse('${ApiConstants.baseUrl}/users/$userId');
-
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}/${ApiConstants.doors}$doorId',
+    );
     final response = await http
         .delete(
           url,
@@ -161,7 +154,7 @@ class AdminUserApiService {
 
     if (response.statusCode != 200) {
       final body = jsonDecode(response.body);
-      throw Exception(body['error'] ?? 'Failed to delete user');
+      throw Exception(body['error'] ?? 'Failed to delete door');
     }
   }
 }

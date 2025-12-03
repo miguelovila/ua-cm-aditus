@@ -23,15 +23,15 @@ class ManagementTab extends StatelessWidget {
                 Text(
                   'Admin Management',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Manage users, groups, doors, and access control',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -67,21 +67,7 @@ class ManagementTab extends StatelessWidget {
           description: 'Configure doors and locations',
           color: Colors.orange,
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Door Management - Coming soon')),
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        _ManagementCard(
-          icon: Icons.vpn_key,
-          title: 'Access Control',
-          description: 'Manage door access permissions',
-          color: Colors.purple,
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Access Control - Coming soon')),
-            );
+            Navigator.pushNamed(context, '/admin/doors');
           },
         ),
         const SizedBox(height: 12),
@@ -133,11 +119,7 @@ class _ManagementCard extends StatelessWidget {
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  icon,
-                  size: 28,
-                  color: color,
-                ),
+                child: Icon(icon, size: 28, color: color),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -154,18 +136,12 @@ class _ManagementCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       description,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey[400],
-              ),
+              Icon(Icons.chevron_right, color: Colors.grey[400]),
             ],
           ),
         ),

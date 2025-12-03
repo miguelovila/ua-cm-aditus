@@ -220,7 +220,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    '${group.memberCount}',
+                                    '${group.memberCount ?? 0}',
                                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -252,7 +252,7 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    '${group.doorCount}',
+                                    '${group.doorCount ?? 0}',
                                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -283,13 +283,16 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                             title: const Text('Manage Members'),
                             subtitle: Text('Add or remove users from this group'),
                             trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              // TODO: Navigate to members management
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Member management coming soon'),
-                                ),
+                            onTap: () async {
+                              final result = await Navigator.pushNamed(
+                                context,
+                                '/admin/groups/members',
+                                arguments: group,
                               );
+                              // Reload if members were modified
+                              if (result == true && context.mounted) {
+                                _loadGroupDetails();
+                              }
                             },
                           ),
                           const Divider(height: 1),
@@ -326,16 +329,20 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                                   ),
                             ),
                             const SizedBox(height: 16),
-                            _InfoRow(
-                              label: 'Created',
-                              value: _formatDate(group.createdAt),
-                            ),
-                            const SizedBox(height: 12),
-                            _InfoRow(
-                              label: 'Last Updated',
-                              value: _formatDate(group.updatedAt),
-                            ),
-                            const SizedBox(height: 12),
+                            if (group.createdAt != null) ...[
+                              _InfoRow(
+                                label: 'Created',
+                                value: _formatDate(group.createdAt!),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                            if (group.updatedAt != null) ...[
+                              _InfoRow(
+                                label: 'Last Updated',
+                                value: _formatDate(group.updatedAt!),
+                              ),
+                              const SizedBox(height: 12),
+                            ],
                             _InfoRow(
                               label: 'Group ID',
                               value: '#${group.id}',

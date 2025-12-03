@@ -235,14 +235,18 @@ class _DeviceCard extends StatelessWidget {
                 _InfoChip(
                   icon: Icons.schedule,
                   label: 'Registered',
-                  value: DateFormatter.formatRelativeDate(device.createdAt),
+                  value: device.createdAt != null
+                      ? DateFormatter.formatRelativeDate(device.createdAt!)
+                      : 'Unknown',
                 ),
                 _InfoChip(
                   icon: Icons.access_time,
                   label: 'Last Used',
                   value: isCurrentDevice
                       ? 'Now'
-                      : DateFormatter.formatRelativeDate(device.lastUsedAt),
+                      : (device.lastUsedAt != null
+                          ? DateFormatter.formatRelativeDate(device.lastUsedAt!)
+                          : 'Unknown'),
                 ),
               ],
             ),

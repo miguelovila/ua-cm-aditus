@@ -13,6 +13,7 @@ class ApiConstants {
   static const String usersMePassword = 'users/me/password';
   static const String devices = 'devices/';
   static const String groups = 'groups/';
+  static const String doors = 'doors/';
 
   ApiConstants._();
 }

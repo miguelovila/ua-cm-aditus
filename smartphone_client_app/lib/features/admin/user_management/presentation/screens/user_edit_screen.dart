@@ -265,37 +265,36 @@ class _UserEditScreenState extends State<UserEditScreen> {
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 12),
-                        RadioListTile<String>(
-                          title: const Text('User'),
-                          subtitle: const Text(
-                            'Regular user with standard permissions',
-                          ),
-                          value: 'user',
+                        RadioGroup<String>(
                           groupValue: _selectedRole,
                           onChanged: _isSubmitting
-                              ? null
+                              ? (value) {}
                               : (value) {
-                                  setState(() {
-                                    _selectedRole = value!;
-                                    _checkForChanges();
-                                  });
+                                  if (value != null) {
+                                    setState(() {
+                                      _selectedRole = value;
+                                      _checkForChanges();
+                                    });
+                                  }
                                 },
-                        ),
-                        RadioListTile<String>(
-                          title: const Text('Admin'),
-                          subtitle: const Text(
-                            'Administrator with full access',
+                          child: Column(
+                            children: [
+                              RadioListTile<String>(
+                                title: const Text('User'),
+                                subtitle: const Text(
+                                  'Regular user with standard permissions',
+                                ),
+                                value: 'user',
+                              ),
+                              RadioListTile<String>(
+                                title: const Text('Admin'),
+                                subtitle: const Text(
+                                  'Administrator with full access',
+                                ),
+                                value: 'admin',
+                              ),
+                            ],
                           ),
-                          value: 'admin',
-                          groupValue: _selectedRole,
-                          onChanged: _isSubmitting
-                              ? null
-                              : (value) {
-                                  setState(() {
-                                    _selectedRole = value!;
-                                    _checkForChanges();
-                                  });
-                                },
                         ),
                       ],
                     ),

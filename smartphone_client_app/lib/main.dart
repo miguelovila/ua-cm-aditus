@@ -16,13 +16,23 @@ import 'features/admin/group_management/presentation/screens/group_list_screen.d
 import 'features/admin/group_management/presentation/screens/group_create_screen.dart';
 import 'features/admin/group_management/presentation/screens/group_detail_screen.dart';
 import 'features/admin/group_management/presentation/screens/group_edit_screen.dart';
+import 'features/admin/group_management/presentation/screens/group_members_screen.dart';
 import 'features/group/data/models/group.dart';
 import 'features/admin/user_management/presentation/bloc/user_management_bloc.dart';
 import 'features/admin/user_management/presentation/screens/user_list_screen.dart';
 import 'features/admin/user_management/presentation/screens/user_create_screen.dart';
 import 'features/admin/user_management/presentation/screens/user_detail_screen.dart';
 import 'features/admin/user_management/presentation/screens/user_edit_screen.dart';
+import 'features/admin/user_management/presentation/screens/user_devices_screen.dart';
+import 'features/admin/user_management/presentation/screens/user_groups_screen.dart';
 import 'features/auth/data/models/user.dart';
+import 'features/admin/door_management/presentation/bloc/door_management_bloc.dart';
+import 'features/admin/door_management/presentation/screens/door_list_screen.dart';
+import 'features/admin/door_management/presentation/screens/door_create_screen.dart';
+import 'features/admin/door_management/presentation/screens/door_detail_screen.dart';
+import 'features/admin/door_management/presentation/screens/door_edit_screen.dart';
+import 'features/admin/door_management/presentation/screens/door_access_control_screen.dart';
+import 'features/admin/door_management/data/models/door.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -68,6 +78,9 @@ class _AppViewState extends State<AppView> {
       case '/admin/groups/edit':
         final group = settings.arguments as Group;
         return GroupEditScreen(group: group);
+      case '/admin/groups/members':
+        final group = settings.arguments as Group;
+        return GroupMembersScreen(group: group);
       default:
         return const Scaffold(
           body: Center(child: Text('Route not found')),
@@ -87,6 +100,34 @@ class _AppViewState extends State<AppView> {
       case '/admin/users/edit':
         final user = settings.arguments as User;
         return UserEditScreen(user: user);
+      case '/admin/users/devices':
+        final user = settings.arguments as User;
+        return UserDevicesScreen(user: user);
+      case '/admin/users/groups':
+        final user = settings.arguments as User;
+        return UserGroupsScreen(user: user);
+      default:
+        return const Scaffold(
+          body: Center(child: Text('Route not found')),
+        );
+    }
+  }
+
+  Widget _buildAdminDoorRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case '/admin/doors':
+        return const DoorListScreen();
+      case '/admin/doors/create':
+        return const DoorCreateScreen();
+      case '/admin/doors/detail':
+        final doorId = settings.arguments as int;
+        return DoorDetailScreen(doorId: doorId);
+      case '/admin/doors/edit':
+        final door = settings.arguments as Door;
+        return DoorEditScreen(door: door);
+      case '/admin/doors/access':
+        final door = settings.arguments as Door;
+        return DoorAccessControlScreen(door: door);
       default:
         return const Scaffold(
           body: Center(child: Text('Route not found')),
@@ -168,6 +209,16 @@ class _AppViewState extends State<AppView> {
                       builder: (context) => BlocProvider(
                         create: (context) => UserManagementBloc(),
                         child: _buildAdminUserRoute(settings),
+                      ),
+                      settings: settings,
+                    );
+                  }
+                  // Handle admin door management routes with BLoC provider
+                  if (settings.name?.startsWith('/admin/doors') ?? false) {
+                    return MaterialPageRoute(
+                      builder: (context) => BlocProvider(
+                        create: (context) => DoorManagementBloc(),
+                        child: _buildAdminDoorRoute(settings),
                       ),
                       settings: settings,
                     );

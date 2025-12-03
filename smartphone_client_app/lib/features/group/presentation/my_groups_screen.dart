@@ -170,12 +170,13 @@ class _GroupCard extends StatelessWidget {
                   color: colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  'Created ${DateFormatter.formatRelativeDate(group.createdAt)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                if (group.createdAt != null)
+                  Text(
+                    'Created ${DateFormatter.formatRelativeDate(group.createdAt!)}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
               ],
             ),
           ],
