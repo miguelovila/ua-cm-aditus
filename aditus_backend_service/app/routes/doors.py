@@ -59,6 +59,8 @@ def create_door():
 def list_doors():
     """
     List all doors with access status for current user
+    Query params:
+    - include_inactive: 'true' to include inactive doors (admin only)
     """
     current_user_id = get_jwt_identity()
     user = User.query.get(int(current_user_id))
@@ -66,7 +68,13 @@ def list_doors():
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    doors = Door.query.filter_by(is_active=True).all()
+    # Check if user is admin and wants all doors (including inactive)
+    include_inactive = request.args.get('include_inactive', 'false').lower() == 'true'
+
+    if include_inactive and user.role == 'admin':
+        doors = Door.query.all()  # Return ALL doors for admins
+    else:
+        doors = Door.query.filter_by(is_active=True).all()  # Only active for regular users
 
     doors_data = []
     for door in doors:
