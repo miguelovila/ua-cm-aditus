@@ -50,6 +50,34 @@ class CryptoService {
     }
   }
 
+  // Sign data with the private key
+  Future<Uint8List> signData(String data) async {
+    try {
+      _log('Signing data with private key...');
+
+      final privateKeyPEM = await getPrivateKeyPEM();
+      if (privateKeyPEM == null) {
+        throw Exception('Private key not found in secure storage.');
+      }
+
+      final privateKey = _parsePrivateKeyFromPEM(privateKeyPEM);
+
+      // Create RSA signer with SHA-256
+      final signer = Signer('SHA-256/RSA');
+      signer.init(true, PrivateKeyParameter<RSAPrivateKey>(privateKey));
+
+      // Convert data to bytes and sign
+      final dataBytes = utf8.encode(data);
+      final signature = signer.generateSignature(dataBytes) as RSASignature;
+
+      _log('Data signed successfully (${signature.bytes.length} bytes)');
+      return signature.bytes;
+    } catch (e) {
+      _log('Error signing data: $e');
+      rethrow;
+    }
+  }
+
   String _encodePublicKeyToPEM(RSAPublicKey publicKey) {
     // Create ASN.1 structure for the public key
     // ASN.1 (Abstract Syntax Notation One) is a standard for representing data
@@ -128,6 +156,42 @@ class CryptoService {
     final dataBase64 = base64.encode(encodedBytes);
 
     return _formatPEM(dataBase64, 'RSA PRIVATE KEY');
+  }
+
+  RSAPrivateKey _parsePrivateKeyFromPEM(String pem) {
+    try {
+      // Remove PEM header and footer
+      String pemContent = pem
+          .replaceAll('-----BEGIN RSA PRIVATE KEY-----', '')
+          .replaceAll('-----END RSA PRIVATE KEY-----', '')
+          .replaceAll('\n', '')
+          .replaceAll('\r', '')
+          .trim();
+
+      // Decode from base64
+      final bytes = base64.decode(pemContent);
+
+      // Parse ASN.1 structure
+      final asn1Parser = ASN1Parser(bytes);
+      final topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
+
+      // Extract components from the sequence
+      // PKCS#1 format: version, n, e, d, p, q, exp1, exp2, coef
+      final version = (topLevelSeq.elements![0] as ASN1Integer).integer;
+      final modulus = (topLevelSeq.elements![1] as ASN1Integer).integer!;
+      final privateExponent =
+          (topLevelSeq.elements![3] as ASN1Integer).integer!;
+      final p = (topLevelSeq.elements![4] as ASN1Integer).integer!;
+      final q = (topLevelSeq.elements![5] as ASN1Integer).integer!;
+
+      _log('Successfully parsed private key from PEM (version: $version)');
+
+      // Create and return RSAPrivateKey
+      return RSAPrivateKey(modulus, privateExponent, p, q);
+    } catch (e) {
+      _log('Error parsing private key from PEM: $e');
+      rethrow;
+    }
   }
 
   String _formatPEM(String base64Data, String type) {
