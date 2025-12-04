@@ -305,3 +305,42 @@ def check_access():
         'door_latitude': door.latitude,
         'door_longitude': door.longitude
     }), 200
+
+
+@bp.route('/configure', methods=['POST'])
+@esp32_auth_required
+def configure_esp32():
+    """
+    Configure ESP32 device by MAC address (ESP32 endpoint)
+    Returns door_id and door_name for the ESP32 to self-configure
+    """
+    data = request.get_json()
+
+    mac_address = data.get('mac_address')
+
+    if not mac_address:
+        return jsonify({'error': 'mac_address is required'}), 400
+
+    # Normalize MAC address format (uppercase with colons)
+    mac_address = mac_address.upper().strip()
+
+    # Find door by device_id (BLE MAC address)
+    door = Door.query.filter_by(device_id=mac_address).first()
+
+    if not door:
+        return jsonify({
+            'error': f'No door configured for MAC address {mac_address}'
+        }), 404
+
+    if not door.is_active:
+        return jsonify({
+            'error': 'Door is disabled',
+            'door_id': door.id,
+            'door_name': door.name
+        }), 403
+
+    # Return configuration
+    return jsonify({
+        'door_id': door.id,
+        'door_name': door.name
+    }), 200
