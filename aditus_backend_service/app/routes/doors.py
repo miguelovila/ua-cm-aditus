@@ -22,13 +22,11 @@ def create_door():
     name = data.get('name')
     description = data.get('description')
     location = data.get('location')
-    latitude = data.get('latitude')
-    longitude = data.get('longitude')
     device_id = data.get('device_id')  # BLE MAC address
     is_active = data.get('is_active', True)
 
-    if not name or latitude is None or longitude is None:
-        return jsonify({'error': 'Name, latitude, and longitude are required'}), 400
+    if not name:
+        return jsonify({'error': 'Name is required'}), 400
 
     # Check if device_id (BLE MAC) already exists
     if device_id and Door.query.filter_by(device_id=device_id).first():
@@ -39,8 +37,6 @@ def create_door():
         name=name,
         description=description,
         location=location,
-        latitude=latitude,
-        longitude=longitude,
         device_id=device_id,
         is_active=is_active
     )
@@ -188,10 +184,6 @@ def update_door(door_id):
         door.description = data['description']
     if 'location' in data:
         door.location = data['location']
-    if 'latitude' in data:
-        door.latitude = data['latitude']
-    if 'longitude' in data:
-        door.longitude = data['longitude']
     if 'device_id' in data:
         # Check if new device_id is already taken
         existing = Door.query.filter_by(device_id=data['device_id']).first()
@@ -234,16 +226,15 @@ def delete_door(door_id):
 def check_access():
     """
     Check if user can access door (ESP32 endpoint)
-    Validates permissions and distance
+    Validates permissions via BLE proximity
     """
     data = request.get_json()
 
     user_id = data.get('user_id')
     door_id = data.get('door_id')
-    distance = data.get('distance')
 
-    if not user_id or not door_id or distance is None:
-        return jsonify({'error': 'user_id, door_id, and distance are required'}), 400
+    if not user_id or not door_id:
+        return jsonify({'error': 'user_id and door_id are required'}), 400
 
     user = User.query.get(user_id)
     door = Door.query.get(door_id)
@@ -272,23 +263,7 @@ def check_access():
     if not has_permission:
         return jsonify({
             'allowed': False,
-            'reason': 'no_permission',
-            'max_distance': 50,  # Could be door-specific
-            'door_latitude': door.latitude,
-            'door_longitude': door.longitude
-        }), 200
-
-    # Check distance (could add max_distance_meters to Door model)
-    max_distance = 50  # meters, hardcoded for now
-
-    if distance > max_distance:
-        return jsonify({
-            'allowed': False,
-            'reason': 'too_far',
-            'distance': distance,
-            'max_distance': max_distance,
-            'door_latitude': door.latitude,
-            'door_longitude': door.longitude
+            'reason': 'no_permission'
         }), 200
 
     # Access granted
@@ -300,10 +275,7 @@ def check_access():
 
     return jsonify({
         'allowed': True,
-        'reason': access_reason,
-        'max_distance': max_distance,
-        'door_latitude': door.latitude,
-        'door_longitude': door.longitude
+        'reason': access_reason
     }), 200
 
 

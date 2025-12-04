@@ -226,9 +226,6 @@ def create_access_log():
     action = data.get('action', 'unlock')
     success = data.get('success')
     failure_reason = data.get('failure_reason')
-    distance_from_door = data.get('distance_from_door')
-    user_latitude = data.get('user_latitude')
-    user_longitude = data.get('user_longitude')
     device_info = data.get('device_info')
     ip_address = data.get('ip_address')
 
@@ -258,9 +255,6 @@ def create_access_log():
         action=action,
         success=success,
         failure_reason=failure_reason,
-        user_lat=user_latitude,
-        user_lon=user_longitude,
-        distance=distance_from_door,
         device_info=device_info,
         ip_address=ip_address
     )

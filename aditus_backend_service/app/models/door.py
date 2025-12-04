@@ -12,10 +12,6 @@ class Door(db.Model):
     description = db.Column(db.Text)
     location = db.Column(db.String(200))
 
-    # GPS coordinates for location-based access control
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
-
     # Door status
     is_active = db.Column(db.Boolean, default=True, nullable=False)
 
@@ -64,8 +60,6 @@ class Door(db.Model):
             'name': self.name,
             'description': self.description,
             'location': self.location,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
             'is_active': self.is_active,
             'device_id': self.device_id,
             'created_at': self.created_at.isoformat() if self.created_at else None,

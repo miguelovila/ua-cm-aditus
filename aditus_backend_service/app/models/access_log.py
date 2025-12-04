@@ -21,11 +21,6 @@ class AccessLog(db.Model):
     success = db.Column(db.Boolean, nullable=False)
     failure_reason = db.Column(db.String(200))  # e.g., 'out_of_range', 'no_permission', etc.
 
-    # Location data when access was attempted
-    user_latitude = db.Column(db.Float)
-    user_longitude = db.Column(db.Float)
-    distance_from_door = db.Column(db.Float)  # Distance in meters
-
     # Additional metadata
     device_info = db.Column(db.Text)  # Could store device model, app version, etc.
     ip_address = db.Column(db.String(45))  # IPv4 or IPv6
@@ -45,9 +40,6 @@ class AccessLog(db.Model):
             'action': self.action,
             'success': self.success,
             'failure_reason': self.failure_reason,
-            'user_latitude': self.user_latitude,
-            'user_longitude': self.user_longitude,
-            'distance_from_door': self.distance_from_door,
             'device_info': self.device_info,
             'ip_address': self.ip_address,
             'timestamp': self.timestamp.isoformat() if self.timestamp else None,
@@ -78,7 +70,6 @@ class AccessLog(db.Model):
 
     @staticmethod
     def log_access(user_id, door_id, action, success, device_id=None, failure_reason=None,
-                   user_lat=None, user_lon=None, distance=None,
                    device_info=None, ip_address=None):
         """
         Static method to create an access log entry
@@ -90,9 +81,6 @@ class AccessLog(db.Model):
             action=action,
             success=success,
             failure_reason=failure_reason,
-            user_latitude=user_lat,
-            user_longitude=user_lon,
-            distance_from_door=distance,
             device_info=device_info,
             ip_address=ip_address
         )
