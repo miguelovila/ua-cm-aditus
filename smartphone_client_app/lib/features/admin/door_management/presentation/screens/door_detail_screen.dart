@@ -476,35 +476,6 @@ class _DoorDetailScreenState extends State<DoorDetailScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // GPS Coordinates Section
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'GPS Coordinates',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                            const SizedBox(height: 16),
-                            _InfoRow(
-                              label: 'Latitude',
-                              value: door.latitude.toString(),
-                            ),
-                            const SizedBox(height: 12),
-                            _InfoRow(
-                              label: 'Longitude',
-                              value: door.longitude.toString(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
                     // Additional Information Section
                     Card(
                       child: Padding(

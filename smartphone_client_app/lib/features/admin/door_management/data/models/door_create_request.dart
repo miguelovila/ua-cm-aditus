@@ -1,7 +1,5 @@
 class DoorCreateRequest {
   final String name;
-  final double latitude;
-  final double longitude;
   final String? location;
   final String? description;
   final String? deviceId;
@@ -9,8 +7,6 @@ class DoorCreateRequest {
 
   const DoorCreateRequest({
     required this.name,
-    required this.latitude,
-    required this.longitude,
     this.location,
     this.description,
     this.deviceId,
@@ -20,8 +16,6 @@ class DoorCreateRequest {
   Map<String, dynamic> toJson() {
     final json = <String, dynamic>{
       'name': name,
-      'latitude': latitude,
-      'longitude': longitude,
       'is_active': isActive,
     };
 

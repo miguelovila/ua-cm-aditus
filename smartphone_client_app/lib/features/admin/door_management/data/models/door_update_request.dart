@@ -1,7 +1,5 @@
 class DoorUpdateRequest {
   final String? name;
-  final double? latitude;
-  final double? longitude;
   final String? location;
   final String? description;
   final String? deviceId;
@@ -9,8 +7,6 @@ class DoorUpdateRequest {
 
   const DoorUpdateRequest({
     this.name,
-    this.latitude,
-    this.longitude,
     this.location,
     this.description,
     this.deviceId,
@@ -22,12 +18,6 @@ class DoorUpdateRequest {
 
     if (name != null && name!.isNotEmpty) {
       json['name'] = name;
-    }
-    if (latitude != null) {
-      json['latitude'] = latitude;
-    }
-    if (longitude != null) {
-      json['longitude'] = longitude;
     }
     if (location != null) {
       json['location'] = location;

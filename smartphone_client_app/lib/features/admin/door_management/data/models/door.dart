@@ -5,8 +5,6 @@ class Door extends Equatable {
   final String name;
   final String? location;
   final String? description;
-  final double latitude;
-  final double longitude;
   final String? deviceId; // BLE MAC address
   final bool isActive;
   final DateTime createdAt;
@@ -23,8 +21,6 @@ class Door extends Equatable {
     required this.name,
     this.location,
     this.description,
-    required this.latitude,
-    required this.longitude,
     this.deviceId,
     required this.isActive,
     required this.createdAt,
@@ -41,8 +37,6 @@ class Door extends Equatable {
       name: json['name'] as String,
       location: json['location'] as String?,
       description: json['description'] as String?,
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
       deviceId: json['device_id'] as String?,
       isActive: json['is_active'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -60,8 +54,6 @@ class Door extends Equatable {
       'name': name,
       'location': location,
       'description': description,
-      'latitude': latitude,
-      'longitude': longitude,
       'device_id': deviceId,
       'is_active': isActive,
       'created_at': createdAt.toIso8601String(),
@@ -81,8 +73,6 @@ class Door extends Equatable {
         name,
         location,
         description,
-        latitude,
-        longitude,
         deviceId,
         isActive,
         createdAt,

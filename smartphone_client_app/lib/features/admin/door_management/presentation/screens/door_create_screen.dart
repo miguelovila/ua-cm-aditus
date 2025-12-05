@@ -15,8 +15,6 @@ class DoorCreateScreen extends StatefulWidget {
 class _DoorCreateScreenState extends State<DoorCreateScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _latitudeController = TextEditingController();
-  final _longitudeController = TextEditingController();
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _deviceIdController = TextEditingController();
@@ -26,8 +24,6 @@ class _DoorCreateScreenState extends State<DoorCreateScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _latitudeController.dispose();
-    _longitudeController.dispose();
     _locationController.dispose();
     _descriptionController.dispose();
     _deviceIdController.dispose();
@@ -38,8 +34,6 @@ class _DoorCreateScreenState extends State<DoorCreateScreen> {
     if (_formKey.currentState?.validate() ?? false) {
       final request = DoorCreateRequest(
         name: _nameController.text.trim(),
-        latitude: double.parse(_latitudeController.text.trim()),
-        longitude: double.parse(_longitudeController.text.trim()),
         location: _locationController.text.trim().isEmpty
             ? null
             : _locationController.text.trim(),
@@ -181,96 +175,6 @@ class _DoorCreateScreenState extends State<DoorCreateScreen> {
               ),
               const SizedBox(height: 16),
 
-              // GPS Coordinates Section
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.gps_fixed, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            'GPS Coordinates *',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      // Latitude
-                      TextFormField(
-                        controller: _latitudeController,
-                        decoration: InputDecoration(
-                          labelText: 'Latitude *',
-                          hintText: 'e.g., 40.631467',
-                          prefixIcon: const Icon(Icons.straighten),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                          signed: true,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Latitude is required';
-                          }
-                          final lat = double.tryParse(value.trim());
-                          if (lat == null) {
-                            return 'Enter a valid number';
-                          }
-                          if (lat < -90 || lat > 90) {
-                            return 'Latitude must be between -90 and 90';
-                          }
-                          return null;
-                        },
-                        enabled: !_isSubmitting,
-                      ),
-                      const SizedBox(height: 16),
-                      // Longitude
-                      TextFormField(
-                        controller: _longitudeController,
-                        decoration: InputDecoration(
-                          labelText: 'Longitude *',
-                          hintText: 'e.g., -8.659510',
-                          prefixIcon: const Icon(Icons.straighten),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          filled: true,
-                        ),
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                          signed: true,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Longitude is required';
-                          }
-                          final lon = double.tryParse(value.trim());
-                          if (lon == null) {
-                            return 'Enter a valid number';
-                          }
-                          if (lon < -180 || lon > 180) {
-                            return 'Longitude must be between -180 and 180';
-                          }
-                          return null;
-                        },
-                        enabled: !_isSubmitting,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
               // Device ID (BLE MAC address)
               TextFormField(
                 controller: _deviceIdController,
@@ -328,34 +232,6 @@ class _DoorCreateScreenState extends State<DoorCreateScreen> {
               const SizedBox(height: 24),
 
               // Info card
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.blue.shade700,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'GPS coordinates are used to verify proximity when users attempt to unlock the door.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.blue.shade900,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 32),
 
               // Submit Button
