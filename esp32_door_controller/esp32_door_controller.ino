@@ -36,7 +36,6 @@
 #define HTTP_SUCCESS_CODE 200
 
 // Door Configuration
-#define LED_BUILTIN 2  // Built-in LED pin (GPIO 2 on most ESP32 boards)
 #define LED_BLINK_DURATION_MS 7000  // 7 seconds
 #define LED_BLINK_INTERVAL_MS 100  // Blink every 100ms (fast blinking for door unlock)
 #define LED_SLOW_BLINK_INTERVAL_MS 1000  // 1 second slow blink (not registered)
@@ -52,6 +51,19 @@ enum UnlockState
 };
 UnlockState currentUnlockState = STATE_IDLE;
 String currentChallenge = "";
+
+// LED State Machine
+enum LedState
+{
+  LED_OFF,
+  LED_ON_IDLE,
+  LED_SLOW_BLINK_CONFIG,
+  LED_FAST_BLINK_UNLOCK
+};
+LedState currentLedState = LED_OFF;
+unsigned long ledLastToggle = 0;
+bool ledCurrentState = false;
+unsigned long unlockStartTime = 0;
 
 // Global Variables
 BLEServer *pServer = nullptr;
@@ -79,6 +91,7 @@ unsigned long stateStartTime = 0;
 // Forward declarations
 void unlockDoor();
 void logAccessAttempt(bool success);
+void updateLedState();
 
 bool init_wifi()
 {
@@ -577,7 +590,7 @@ void logAccessAttempt(bool success)
   String requestBody;
   serializeJson(requestDoc, requestBody);
 
-  String url = String(API_BASE_URL) + "api/access-logs";
+  String url = String(API_BASE_URL) + "api/access-logs/";  // Added trailing slash
 
 #ifdef DEBUG
   Serial.printf("[DEBUG] Logging access at: %s\n", url.c_str());
@@ -591,37 +604,106 @@ void logAccessAttempt(bool success)
   }
 
   http.addHeader("Content-Type", "application/json");
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);  // Follow redirects
   int httpCode = http.POST(requestBody);
 
-  if (httpCode == HTTP_SUCCESS_CODE)
+  if (httpCode == HTTP_SUCCESS_CODE || httpCode == 201)
   {
     Serial.println("[ INFO] Access attempt logged successfully");
+  }
+  else if (httpCode == 308 || httpCode == 301 || httpCode == 302)
+  {
+    // Handle redirect - get new location
+    String redirectUrl = http.getLocation();
+    http.end();
+
+    Serial.printf("[WARN] Server redirected to: %s\n", redirectUrl.c_str());
+    Serial.println("[WARN] Retrying with redirected URL...");
+
+    // Retry with the redirect URL
+    if (http.begin(secure_client, redirectUrl))
+    {
+      http.addHeader("Content-Type", "application/json");
+      httpCode = http.POST(requestBody);
+
+      if (httpCode == HTTP_SUCCESS_CODE || httpCode == 201)
+      {
+        Serial.println("[ INFO] Access attempt logged successfully (after redirect)");
+      }
+      else
+      {
+        Serial.printf("[WARN] Failed to log access after redirect: %d\n", httpCode);
+      }
+    }
   }
   else
   {
     Serial.printf("[WARN] Failed to log access: %d\n", httpCode);
+#ifdef DEBUG
+    Serial.printf("[DEBUG] Response: %s\n", http.getString().c_str());
+#endif
   }
 
   http.end();
+}
+
+void updateLedState()
+{
+  unsigned long currentMillis = millis();
+
+  switch (currentLedState)
+  {
+  case LED_OFF:
+    digitalWrite(LED_BUILTIN, LOW);
+    break;
+
+  case LED_ON_IDLE:
+    // Solid ON when operational and idle
+    digitalWrite(LED_BUILTIN, HIGH);
+    break;
+
+  case LED_SLOW_BLINK_CONFIG:
+    // Slow blink (1 second interval) when not registered
+    if (currentMillis - ledLastToggle >= LED_SLOW_BLINK_INTERVAL_MS)
+    {
+      ledCurrentState = !ledCurrentState;
+      digitalWrite(LED_BUILTIN, ledCurrentState ? HIGH : LOW);
+      ledLastToggle = currentMillis;
+    }
+    break;
+
+  case LED_FAST_BLINK_UNLOCK:
+    // Fast blink (100ms interval) for 7 seconds during unlock
+    if (currentMillis - unlockStartTime >= LED_BLINK_DURATION_MS)
+    {
+      // Unlock period finished, return to idle state
+      currentLedState = LED_ON_IDLE;
+      digitalWrite(LED_BUILTIN, HIGH);
+      Serial.println("[ INFO] Door lock cycle complete");
+    }
+    else
+    {
+      // Continue fast blinking
+      if (currentMillis - ledLastToggle >= LED_BLINK_INTERVAL_MS)
+      {
+        ledCurrentState = !ledCurrentState;
+        digitalWrite(LED_BUILTIN, ledCurrentState ? HIGH : LOW);
+        ledLastToggle = currentMillis;
+      }
+    }
+    break;
+  }
 }
 
 void unlockDoor()
 {
   Serial.println("[ INFO] UNLOCKING DOOR - Blinking LED");
 
-  unsigned long startTime = millis();
-  bool ledState = false;
-
-  while (millis() - startTime < LED_BLINK_DURATION_MS)
-  {
-    ledState = !ledState;
-    digitalWrite(LED_BUILTIN, ledState ? HIGH : LOW);
-    delay(LED_BLINK_INTERVAL_MS);
-  }
-
-  // Return to solid LED state (operational)
-  digitalWrite(LED_BUILTIN, HIGH);
-  Serial.println("[ INFO] Door lock cycle complete");
+  // Start fast LED blink
+  currentLedState = LED_FAST_BLINK_UNLOCK;
+  unlockStartTime = millis();
+  ledLastToggle = millis();
+  ledCurrentState = false;
 }
 
 String get_ble_mac_address()
@@ -722,6 +804,7 @@ void setup()
 
   // Initialize LED GPIO
   pinMode(LED_BUILTIN, OUTPUT);
+  currentLedState = LED_OFF;
   digitalWrite(LED_BUILTIN, LOW);  // Start with LED off
   Serial.printf("[ INFO] LED initialized on pin %d\n", LED_BUILTIN);
 
@@ -754,8 +837,8 @@ void setup()
     // Start BLE advertising
     start_ble_advertising();
 
-    // Set LED to solid (operational state)
-    digitalWrite(LED_BUILTIN, HIGH);
+    // Set LED to solid ON (operational state)
+    currentLedState = LED_ON_IDLE;
 
     Serial.println("[ INFO] Door controller initialized and registered successfully");
   }
@@ -764,22 +847,20 @@ void setup()
     Serial.println("[WARN] Initial registration failed. Will retry every 10 seconds...");
     Serial.println("[WARN] BLE advertising disabled until registration succeeds.");
     // LED will blink slowly in loop() to indicate not registered
+    currentLedState = LED_SLOW_BLINK_CONFIG;
     lastRegistrationAttempt = millis();
   }
 }
 
 void loop()
 {
+  // Update LED state continuously
+  updateLedState();
+
   // Handle registration retry if not registered
   if (!isRegistered)
   {
-    // Slow blink LED to indicate not registered
-    static unsigned long lastLedToggle = 0;
-    if (millis() - lastLedToggle > LED_SLOW_BLINK_INTERVAL_MS)
-    {
-      digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-      lastLedToggle = millis();
-    }
+    // LED is managed by updateLedState() in SLOW_BLINK_CONFIG mode
 
     // Retry registration every 10 seconds
     if (millis() - lastRegistrationAttempt > REGISTRATION_RETRY_INTERVAL_MS)
@@ -804,8 +885,8 @@ void loop()
         // Start BLE advertising
         start_ble_advertising();
 
-        // Set LED to solid (operational state)
-        digitalWrite(LED_BUILTIN, HIGH);
+        // Set LED to solid ON (operational state)
+        currentLedState = LED_ON_IDLE;
 
         Serial.println("[ INFO] Registration successful! Door is now operational.");
       }
