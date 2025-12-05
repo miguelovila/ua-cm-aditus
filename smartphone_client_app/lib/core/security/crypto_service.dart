@@ -51,7 +51,7 @@ class CryptoService {
   }
 
   // Sign data with the private key
-  Future<Uint8List> signData(String data) async {
+  Future<String> signData(String data) async {
     try {
       _log('Signing data with private key...');
 
@@ -71,7 +71,7 @@ class CryptoService {
       final signature = signer.generateSignature(dataBytes) as RSASignature;
 
       _log('Data signed successfully (${signature.bytes.length} bytes)');
-      return signature.bytes;
+      return base64.encode(signature.bytes);
     } catch (e) {
       _log('Error signing data: $e');
       rethrow;
