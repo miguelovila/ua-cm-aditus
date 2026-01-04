@@ -23,7 +23,6 @@ def list_access_logs():
     - from: filter by start date (ISO format)
     - to: filter by end date (ISO format)
     """
-    # Parse query parameters
     limit = min(int(request.args.get('limit', 50)), 500)
     offset = int(request.args.get('offset', 0))
     success_filter = request.args.get('success')
@@ -33,7 +32,6 @@ def list_access_logs():
     from_date = request.args.get('from')
     to_date = request.args.get('to')
 
-    # Build query
     query = AccessLog.query
 
     if success_filter is not None:
@@ -59,13 +57,10 @@ def list_access_logs():
         to_dt = datetime.fromisoformat(to_date.replace('Z', '+00:00'))
         query = query.filter(AccessLog.timestamp <= to_dt)
 
-    # Order by timestamp descending (most recent first)
     query = query.order_by(AccessLog.timestamp.desc())
 
-    # Get total count
     total = query.count()
 
-    # Apply pagination
     logs = query.limit(limit).offset(offset).all()
 
     return jsonify({
@@ -88,11 +83,9 @@ def get_my_logs():
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    # Parse pagination
     limit = min(int(request.args.get('limit', 50)), 500)
     offset = int(request.args.get('offset', 0))
 
-    # Get user's logs
     query = AccessLog.query.filter_by(user_id=user.id).order_by(AccessLog.timestamp.desc())
 
     total = query.count()
@@ -118,7 +111,6 @@ def get_door_logs(door_id):
     if not door:
         return jsonify({'error': 'Door not found'}), 404
 
-    # Parse pagination
     limit = min(int(request.args.get('limit', 50)), 500)
     offset = int(request.args.get('offset', 0))
 
@@ -151,11 +143,9 @@ def get_user_logs(user_id):
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    # Check permissions
     if not current_user.is_admin() and user.id != current_user.id:
         return jsonify({'error': 'Access denied'}), 403
 
-    # Parse pagination
     limit = min(int(request.args.get('limit', 50)), 500)
     offset = int(request.args.get('offset', 0))
 
@@ -188,11 +178,9 @@ def get_device_logs(device_id):
     if not device:
         return jsonify({'error': 'Device not found'}), 404
 
-    # Check permissions
     if not current_user.is_admin() and device.owner_id != current_user.id:
         return jsonify({'error': 'Access denied'}), 403
 
-    # Parse pagination
     limit = min(int(request.args.get('limit', 50)), 500)
     offset = int(request.args.get('offset', 0))
 
@@ -209,8 +197,6 @@ def get_device_logs(device_id):
         'offset': offset
     }), 200
 
-
-# ESP32 Endpoint
 
 @bp.route('/', methods=['POST'])
 @esp32_auth_required
@@ -232,7 +218,6 @@ def create_access_log():
     if user_id is None or door_id is None or success is None:
         return jsonify({'error': 'user_id, door_id, and success are required'}), 400
 
-    # Validate that referenced entities exist
     user = User.query.get(user_id)
     door = Door.query.get(door_id)
 
@@ -247,7 +232,6 @@ def create_access_log():
         if not device:
             return jsonify({'error': 'Device not found'}), 404
 
-    # Create access log
     log = AccessLog.log_access(
         user_id=user_id,
         door_id=door_id,

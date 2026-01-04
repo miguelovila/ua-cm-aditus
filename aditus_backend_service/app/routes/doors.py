@@ -22,17 +22,15 @@ def create_door():
     name = data.get('name')
     description = data.get('description')
     location = data.get('location')
-    device_id = data.get('device_id')  # BLE MAC address
+    device_id = data.get('device_id')
     is_active = data.get('is_active', True)
 
     if not name:
         return jsonify({'error': 'Name is required'}), 400
 
-    # Check if device_id (BLE MAC) already exists
     if device_id and Door.query.filter_by(device_id=device_id).first():
         return jsonify({'error': 'Door with this device ID already exists'}), 409
 
-    # Create new door
     door = Door(
         name=name,
         description=description,
@@ -64,7 +62,6 @@ def list_doors():
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    # Check if user is admin and wants all doors (including inactive)
     include_inactive = request.args.get('include_inactive', 'false').lower() == 'true'
 
     if include_inactive and user.role == 'admin':
@@ -76,11 +73,9 @@ def list_doors():
     for door in doors:
         door_dict = door.to_dict()
 
-        # Check if user has access
         has_access = user.has_access_to_door(door)
         door_dict['user_has_access'] = has_access
 
-        # Determine access type
         if has_access:
             if door in user.direct_door_access:
                 door_dict['access_type'] = 'direct_access'
@@ -143,7 +138,6 @@ def get_door(door_id):
 
     door_dict = door.to_dict(include_access_info=user.is_admin())
 
-    # Add user access info
     has_access = user.has_access_to_door(door)
     door_dict['user_has_access'] = has_access
 
@@ -177,7 +171,6 @@ def update_door(door_id):
     if not data:
         return jsonify({'error': 'Missing request body'}), 400
 
-    # Update fields
     if 'name' in data:
         door.name = data['name']
     if 'description' in data:
@@ -185,7 +178,6 @@ def update_door(door_id):
     if 'location' in data:
         door.location = data['location']
     if 'device_id' in data:
-        # Check if new device_id is already taken
         existing = Door.query.filter_by(device_id=data['device_id']).first()
         if existing and existing.id != door.id:
             return jsonify({'error': 'Device ID already in use'}), 409
@@ -218,8 +210,6 @@ def delete_door(door_id):
 
     return jsonify({'message': 'Door deleted successfully'}), 200
 
-
-# ESP32 Endpoints
 
 @bp.route('/check-access', methods=['POST'])
 @esp32_auth_required
@@ -257,7 +247,6 @@ def check_access():
             'reason': 'door_inactive'
         }), 200
 
-    # Check if user has access permission
     has_permission = user.has_access_to_door(door)
 
     if not has_permission:
@@ -266,8 +255,6 @@ def check_access():
             'reason': 'no_permission'
         }), 200
 
-    # Access granted
-    # Determine access reason
     if door in user.direct_door_access:
         access_reason = 'direct_access'
     else:
@@ -293,10 +280,8 @@ def configure_esp32():
     if not mac_address:
         return jsonify({'error': 'mac_address is required'}), 400
 
-    # Normalize MAC address format (uppercase with colons)
     mac_address = mac_address.upper().strip()
 
-    # Find door by device_id (BLE MAC address)
     door = Door.query.filter_by(device_id=mac_address).first()
 
     if not door:
@@ -311,7 +296,6 @@ def configure_esp32():
             'door_name': door.name
         }), 403
 
-    # Return configuration
     return jsonify({
         'door_id': door.id,
         'door_name': door.name

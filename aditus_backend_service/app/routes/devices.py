@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
-from app.models import User, Device
+from app.models import User, Device, PairingSession
 from app.utils.decorators import admin_required, esp32_auth_required
+import secrets
 
 bp = Blueprint('devices', __name__)
 
@@ -30,11 +31,9 @@ def register_device():
     if not name or not public_key:
         return jsonify({'error': 'Device name and public key are required'}), 400
 
-    # Check if public key already exists
     if Device.query.filter_by(public_key=public_key).first():
         return jsonify({'error': 'Device with this public key already registered'}), 409
 
-    # Create new device
     device = Device(
         owner_id=user.id,
         name=name,
@@ -84,7 +83,6 @@ def get_device(device_id):
     if not device:
         return jsonify({'error': 'Device not found'}), 404
 
-    # Check permissions
     if not current_user.is_admin() and device.owner_id != current_user.id:
         return jsonify({'error': 'Access denied'}), 403
 
@@ -108,7 +106,6 @@ def update_device(device_id):
     if not device:
         return jsonify({'error': 'Device not found'}), 404
 
-    # Check permissions
     if not current_user.is_admin() and device.owner_id != current_user.id:
         return jsonify({'error': 'Access denied'}), 403
 
@@ -117,7 +114,6 @@ def update_device(device_id):
     if not data:
         return jsonify({'error': 'Missing request body'}), 400
 
-    # Update device name
     if 'name' in data:
         device.name = data['name']
 
@@ -144,7 +140,6 @@ def delete_device(device_id):
     if not device:
         return jsonify({'error': 'Device not found'}), 404
 
-    # Check permissions
     if not current_user.is_admin() and device.owner_id != current_user.id:
         return jsonify({'error': 'Access denied'}), 403
 
@@ -153,8 +148,6 @@ def delete_device(device_id):
 
     return jsonify({'message': 'Device deleted successfully'}), 200
 
-
-# ESP32 Endpoints
 
 @bp.route('/<int:device_id>/public-key', methods=['POST'])
 @esp32_auth_required
@@ -172,5 +165,86 @@ def get_device_public_key(device_id):
         'device_id': device.id,
         'user_id': device.owner_id,
         'public_key': device.public_key,
-        'is_active': True  # Could add is_active field to Device model later
+        'is_active': True
     }), 200
+
+
+@bp.route('/pairing/initiate', methods=['POST'])
+@jwt_required()
+def initiate_pairing():
+    """
+    Initiate smartwatch pairing by generating a pairing code
+    Smartphone calls this with JWT auth
+    """
+    current_user_id = get_jwt_identity()
+    user = User.query.get(int(current_user_id))
+
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
+
+    pairing_session = PairingSession(
+        user_id=user.id,
+        code=code,
+        expiry_minutes=5
+    )
+
+    db.session.add(pairing_session)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Pairing session created',
+        'code': code,
+        'expires_at': pairing_session.expires_at.isoformat(),
+    }), 201
+
+
+@bp.route('/pairing/complete', methods=['POST'])
+def complete_pairing():
+    """
+    Complete smartwatch pairing using pairing code
+    Smartwatch calls this without JWT (uses pairing code instead)
+    """
+    data = request.get_json()
+
+    if not data:
+        return jsonify({'error': 'Missing request body'}), 400
+
+    code = data.get('code')
+    device_name = data.get('device_name')
+    public_key = data.get('public_key')
+
+    if not code or not device_name or not public_key:
+        return jsonify({'error': 'Code, device name and public key are required'}), 400
+
+    pairing_session = PairingSession.query.filter_by(code=code).first()
+
+    if not pairing_session:
+        return jsonify({'error': 'Invalid pairing code'}), 404
+
+    if not pairing_session.is_valid():
+        return jsonify({'error': 'Pairing code expired or already used'}), 400
+
+    user = User.query.get(pairing_session.user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    if Device.query.filter_by(public_key=public_key).first():
+        return jsonify({'error': 'Device with this public key already registered'}), 409
+
+    device = Device(
+        owner_id=user.id,
+        name=device_name,
+        public_key=public_key
+    )
+
+    pairing_session.mark_as_used()
+
+    db.session.add(device)
+    db.session.commit()
+
+    return jsonify({
+        'message': 'Smartwatch paired successfully',
+        'device': device.to_dict()
+    }), 201

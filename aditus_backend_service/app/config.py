@@ -8,19 +8,16 @@ load_dotenv()
 class Config:
     """Base configuration"""
 
-    # Flask
     SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     DEBUG = False
     TESTING = False
 
-    # Database
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'DATABASE_URL',
         'sqlite:///aditus.db'
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # JWT Configuration
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key-change-in-production')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=3)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
@@ -28,10 +25,8 @@ class Config:
     JWT_HEADER_NAME = 'Authorization'
     JWT_HEADER_TYPE = 'Bearer'
 
-    # CORS
     CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*').split(',')
 
-    # ESP32 API Key for simple authentication
     ESP32_API_KEY = os.getenv('ESP32_API_KEY', 'esp32-dev-key-change-in-production')
 
 
@@ -68,7 +63,6 @@ class TestingConfig(Config):
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=5)
 
 
-# Configuration dictionary
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
