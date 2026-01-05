@@ -115,4 +115,39 @@ class DeviceApiService {
       throw Exception(errorMessage);
     }
   }
+
+  /// Initiate smartwatch pairing and get pairing code
+  Future<Map<String, dynamic>> initiateSmartwatchPairing() async {
+    final accessToken = await _secureStorage.getAccessToken();
+
+    if (accessToken == null) {
+      throw Exception('No access token found');
+    }
+
+    final url = Uri.parse(
+      '${ApiConstants.baseUrl}/${ApiConstants.devices}pairing/initiate',
+    );
+
+    final response = await http
+        .post(
+          url,
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          },
+        )
+        .timeout(ApiConstants.requestTimeout);
+
+    final body = jsonDecode(response.body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return body;
+    } else {
+      String errorMessage = 'Failed to initiate pairing';
+      if (body.containsKey('error')) {
+        errorMessage = body['error'] as String;
+      }
+      throw Exception(errorMessage);
+    }
+  }
 }

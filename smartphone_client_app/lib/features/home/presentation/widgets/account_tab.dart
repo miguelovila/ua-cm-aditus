@@ -9,6 +9,7 @@ import 'package:smartphone_client_app/features/account/presentation/theme_select
 import 'package:smartphone_client_app/features/account/presentation/bloc/bloc.dart';
 import 'package:smartphone_client_app/features/device/presentation/my_devices_screen.dart';
 import 'package:smartphone_client_app/features/group/presentation/my_groups_screen.dart';
+import 'package:smartphone_client_app/features/smartwatch/presentation/smartwatch_pairing_screen.dart';
 import 'package:smartphone_client_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:smartphone_client_app/core/theme/theme_cubit.dart';
 import 'package:smartphone_client_app/core/ui/snackbar_helper.dart';
@@ -143,6 +144,17 @@ class _AccountContent extends StatelessWidget {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => const MyDevicesScreen(),
+                  ),
+                );
+              },
+            ),
+            ClusterItem(
+              icon: Icons.watch,
+              title: 'Pair Smartwatch',
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const SmartWatchPairingScreen(),
                   ),
                 );
               },
