@@ -1,6 +1,6 @@
 # Aditus - Secure Access Control System
 
-![Aditus Logo](logo.png)
+![Video Demo](screenshots/smartwatch_unlock_flow-ezgif.com-optimize.gif)
 
 Aditus is an access control system designed to manage and authenticate access to rooms using smartphones and smartwatches. The system has a multi-component architecture, including a backend service, a mobile client application, a smartwatch client application, and a door controller based on the ESP32 microcontroller.
 
@@ -17,6 +17,12 @@ Aditus is an access control system designed to manage and authenticate access to
     - [Smartphone/Smartwatch Apps](#smartphonesmartwatch-apps)
     - [ESP32 Door Controller](#esp32-door-controller)
   - [Screenshots](#screenshots)
+    - [Authentication](#authentication)
+    - [Device Registration](#device-registration)
+    - [Door Discovery, Access and Management](#door-discovery-access-and-management)
+    - [Account \& Settings](#account--settings)
+    - [Admin Features](#admin-features)
+    - [Smartwatch App](#smartwatch-app)
 
 ## Overview
 
@@ -127,4 +133,75 @@ The Aditus system operates through an interaction between the client devices, th
 
 ## Screenshots
 
+### Authentication
+<table>
+  <tr>
+    <td><img src="screenshots/login_screen.png" width="250"/><br/><b>Login Screen</b></td>
+    <td><img src="screenshots/pin_setup_screen.png" width="250"/><br/><b>PIN Setup</b></td>
+  </tr>
+</table>
+
+### Device Registration
+<table>
+  <tr>
+    <td><img src="screenshots/device_registration_screen.png" width="250"/><br/><b>Device Registration</b></td>
+    <td><img src="screenshots/device_management.png" width="250"/><br/><b>Device Management</b></td>
+  </tr>
+</table>
+
+### Door Discovery, Access and Management
+<table>
+  <tr>
+    <td><img src="screenshots/nearby_door_list.png" width="250"/><br/><b>Nearby Doors</b></td>
+    <td><img src="screenshots/dor_unlocking_1.png" width="250"/><br/><b>Door Unlocking (1)</b></td>
+    <td><img src="screenshots/door_unlocking_2.png" width="250"/><br/><b>Door Unlocking (2)</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/door_details.png" width="250"/><br/><b>Door Details</b></td>
+    <td><img src="screenshots/access_histry_screen.png" width="250"/><br/><b>Access History</b></td>
+  </tr>
+</table>
+
+### Account & Settings
+<table>
+  <tr>
+    <td><img src="screenshots/account_screen.png" width="250"/><br/><b>Account Screen</b></td>
+    <td><img src="screenshots/password_change.png" width="250"/><br/><b>Password Change</b></td>
+    <td><img src="screenshots/pin_hacnge.png" width="250"/><br/><b>PIN Change</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/theme_and_color_screen.png" width="250"/><br/><b>Theme & Color Settings</b></td>
+  </tr>
+</table>
+
+### Admin Features
+<table>
+  <tr>
+    <td><img src="screenshots/admin_screen.png" width="250"/><br/><b>Admin Dashboard</b></td>
+    <td><img src="screenshots/admin_door_list.png" width="250"/><br/><b>Door List (Admin)</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/user_list_screen.png" width="250"/><br/><b>User List</b></td>
+    <td><img src="screenshots/user_details.png" width="250"/><br/><b>User Details</b></td>
+    <td><img src="screenshots/user_edit_form.png" width="250"/><br/><b>Edit User</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/group_list.png" width="250"/><br/><b>Group List</b></td>
+    <td><img src="screenshots/group_details_screen.png" width="250"/><br/><b>Group Details</b></td>
+    <td><img src="screenshots/manage_group_members.png" width="250"/><br/><b>Manage Group Members</b></td>
+  </tr>
+</table>
+
+### Smartwatch App
+<table>
+  <tr>
+    <td><img src="screenshots/watch_pair_tutorial.png" width="200"/><br/><b>Pairing Tutorial</b></td>
+    <td><img src="screenshots/watch_pair_code_input.png" width="200"/><br/><b>Pairing Code Input</b></td>
+    <td><img src="screenshots/smartwatch_registration.png" width="250"/><br/><b>Smartwatch Registration</b></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/watch_closest _door.png" width="200"/><br/><b>Closest Door</b></td>
+    <td><img src="screenshots/watch_settings.png" width="200"/><br/><b>Watch Settings</b></td>
+  </tr>
+</table>
 
