@@ -25,6 +25,12 @@
 #define API_BASE_URL "https://aditus-api.mxv.pt/"
 #define API_HEALTH_ENDPOINT "/health"
 #define HTTP_SUCCESS_CODE 200
+#define HTTP_TIMEOUT_MS 10000
+#define LED_SLOW_BLINK_INTERVAL_MS 1000
+#define LED_BLINK_DURATION_MS 3000
+#define LED_BLINK_INTERVAL_MS 200
+#define REGISTRATION_RETRY_INTERVAL_MS 10000
+#define SIGNATURE_TIMEOUT_MS 30000
 
 enum UnlockState
 {
@@ -152,6 +158,7 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
           pChallengeCharacteristic->notify();
           Serial.println("[ INFO] Challenge sent to app.");
           currentUnlockState = STATE_WAITING_FOR_SIGNATURE;
+          stateStartTime = millis();
 
         }
         else
@@ -189,6 +196,8 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
             currentUnlockState = STATE_AUTHORIZED;
             pStatusCharacteristic->setValue("AUTHORIZED");
             pStatusCharacteristic->notify();
+            logAccessAttempt(true);
+            unlockDoor();
           }
           else
           {
@@ -196,7 +205,10 @@ class MyCharacteristicCallbacks : public BLECharacteristicCallbacks
             currentUnlockState = STATE_DENIED;
             pStatusCharacteristic->setValue("DENIED_INVALID_SIGNATURE");
             pStatusCharacteristic->notify();
-          }        else
+            logAccessAttempt(false);
+          }
+        }
+        else
         {
           Serial.println("[WARN] Received signature in wrong state. Ignoring.");
           pStatusCharacteristic->setValue("DENIED_INVALID_STATE");
@@ -425,7 +437,7 @@ bool verifyRSASignature(String publicKeyPEM, String challenge, String signatureB
 {
 
   size_t outputLen;
-
+  size_t signatureLen = 512;
   unsigned char signature[signatureLen];
 
   int ret = mbedtls_base64_decode(signature, signatureLen, &outputLen,
@@ -473,7 +485,8 @@ bool verifyRSASignature(String publicKeyPEM, String challenge, String signatureB
     mbedtls_strerror(ret, error_buf, sizeof(error_buf));
     Serial.printf("[ERROR] RSA signature verification FAILED: -0x%04x (%s)\n", -ret, error_buf);
     return false;
-  }}
+  }
+}
 
 void logAccessAttempt(bool success)
 {
@@ -504,6 +517,8 @@ void logAccessAttempt(bool success)
 
   String requestBody;
   serializeJson(requestDoc, requestBody);
+
+  String url = String(API_BASE_URL) + "api/logs/access";
 
   if (!http.begin(secure_client, url))
   {
@@ -770,7 +785,7 @@ void loop()
     oldDeviceConnected = deviceConnected;
   }
   static unsigned long lastWiFiCheck = 0;
-
+  if (millis() - lastWiFiCheck > 30000)
   {
     if (WiFi.status() != WL_CONNECTED)
     {
