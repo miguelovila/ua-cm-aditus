@@ -105,7 +105,6 @@ class DeviceApiService {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return body;
     } else {
-      // Extract error message
       String errorMessage = 'Request failed';
       if (body.containsKey('error')) {
         errorMessage = body['error'] as String;

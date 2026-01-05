@@ -17,10 +17,10 @@ class DoorUnlockBloc extends Bloc<DoorUnlockEvent, DoorUnlockState> {
     BleService? bleService,
     CryptoService? cryptoService,
     SecureStorageService? storage,
-  })  : _bleService = bleService ?? BleService(),
-        _cryptoService = cryptoService ?? CryptoService(),
-        _storage = storage ?? SecureStorageService(),
-        super(const DoorUnlockInitial()) {
+  }) : _bleService = bleService ?? BleService(),
+       _cryptoService = cryptoService ?? CryptoService(),
+       _storage = storage ?? SecureStorageService(),
+       super(const DoorUnlockInitial()) {
     on<DoorUnlockRequested>(_onUnlockRequested);
     on<DoorUnlockCancelled>(_onUnlockCancelled);
   }
@@ -32,7 +32,6 @@ class DoorUnlockBloc extends Bloc<DoorUnlockEvent, DoorUnlockState> {
     try {
       _log('Starting unlock request for device: ${event.deviceId}');
 
-      // 1. Get user ID and device ID from secure storage
       emit(const DoorUnlockInProgress('Preparing...'));
       final userJson = await _storage.getUserData();
       final userId = userJson?['id']?.toString();
@@ -41,28 +40,29 @@ class DoorUnlockBloc extends Bloc<DoorUnlockEvent, DoorUnlockState> {
 
       if (userId == null || deviceId == null) {
         _log('Authentication failed: missing credentials');
-        emit(const DoorUnlockFailure('User not authenticated', canRetry: false));
+        emit(
+          const DoorUnlockFailure('User not authenticated', canRetry: false),
+        );
         return;
       }
 
-      // 2. Connect to door via BLE
       emit(const DoorUnlockInProgress('Connecting to door...'));
       _log('Connecting to BLE device...');
       await _bleService.connectToDevice(event.deviceId);
       _log('Connected successfully');
 
-      // 3. Discover services and characteristics
       emit(const DoorUnlockInProgress('Discovering services...'));
       _log('Discovering services...');
       await _bleService.discoverServices(event.deviceId);
       _log('Services discovered');
 
-      // 4. Subscribe to Challenge and Status characteristics
       const challengeUuid = '6a3d9e2c-2a9a-4c1b-8f0a-7b8b5a3d0b1a';
       const statusUuid = '8f0a7b8b-5a3d-4c1b-8f0a-6f3d9e2c2a9a';
 
       _log('Subscribing to challenge characteristic...');
-      final challengeStream = await _bleService.listenToCharacteristic(challengeUuid);
+      final challengeStream = await _bleService.listenToCharacteristic(
+        challengeUuid,
+      );
       _log('Challenge stream obtained');
 
       _log('Subscribing to status characteristic...');
@@ -73,18 +73,13 @@ class DoorUnlockBloc extends Bloc<DoorUnlockEvent, DoorUnlockState> {
       _log('Waiting 100ms for subscriptions to stabilize...');
       await Future.delayed(const Duration(milliseconds: 100));
 
-      // 5. Write user ID + device ID to ID characteristic
       emit(const DoorUnlockInProgress('Authenticating...'));
       const idUuid = '5f2e6f9a-6f3d-4a1b-8f0a-7b8b5a3d0b1a';
-      final idPayload = json.encode({
-        'user_id': userId,
-        'device_id': deviceId,
-      });
+      final idPayload = json.encode({'user_id': userId, 'device_id': deviceId});
       _log('Writing ID payload: $idPayload');
       await _bleService.writeToCharacteristic(idUuid, idPayload);
       _log('ID payload written successfully');
 
-      // 6. Wait for challenge from ESP32 (with 30s timeout)
       _log('Waiting for challenge from ESP32...');
       final challenge = await challengeStream.first.timeout(
         const Duration(seconds: 30),
@@ -95,19 +90,20 @@ class DoorUnlockBloc extends Bloc<DoorUnlockEvent, DoorUnlockState> {
       );
       _log('Challenge received: $challenge');
 
-      // 7. Sign challenge with private key
       emit(const DoorUnlockInProgress('Signing challenge...'));
       _log('Signing challenge...');
       final signature = await _cryptoService.signData(challenge);
       _log('Challenge signed, signature length: ${signature.length}');
 
-      // 8. Write signature to Signature characteristic
       const signatureUuid = '7b8b5a3d-0b1a-4c1b-8f0a-6f3d9e2c2a9a';
       _log('Writing signature to characteristic...');
-      await _bleService.writeToCharacteristic(signatureUuid, signature, allowLongWrite: true);
+      await _bleService.writeToCharacteristic(
+        signatureUuid,
+        signature,
+        allowLongWrite: true,
+      );
       _log('Signature written successfully');
 
-      // 9. Wait for status response (with 30s timeout)
       emit(const DoorUnlockInProgress('Unlocking...'));
       _log('Waiting for status response...');
       final status = await statusStream.first.timeout(
@@ -119,7 +115,6 @@ class DoorUnlockBloc extends Bloc<DoorUnlockEvent, DoorUnlockState> {
       );
       _log('Status received: $status');
 
-      // 10. Handle status response
       if (status == 'AUTHORIZED') {
         _log('Access authorized, door unlocked!');
         emit(DoorUnlockSuccess(event.doorName));
@@ -129,7 +124,6 @@ class DoorUnlockBloc extends Bloc<DoorUnlockEvent, DoorUnlockState> {
         emit(DoorUnlockFailure(errorMessage, canRetry: _canRetry(status)));
       }
 
-      // 11. Disconnect from device
       _log('Disconnecting from device...');
       await _bleService.disconnectFromDevice();
       _log('Disconnected');
@@ -159,6 +153,10 @@ class DoorUnlockBloc extends Bloc<DoorUnlockEvent, DoorUnlockState> {
         'INVALID_SIGNATURE' => 'Authentication failed: Invalid signature',
         'INVALID_STATE' => 'Door is in invalid state',
         'TIMEOUT' => 'Request timed out',
+        'BACKEND_ERROR' =>
+          'Backend service is currently unavailable. Please try again.',
+        'NETWORK_ERROR' =>
+          'Network connection error. Please check your connection.',
         _ => 'Access denied: $reason',
       };
     }
@@ -166,7 +164,6 @@ class DoorUnlockBloc extends Bloc<DoorUnlockEvent, DoorUnlockState> {
   }
 
   bool _canRetry(String status) {
-    // Determine if retry makes sense for this error
     return !status.contains('no_permission') &&
         !status.contains('user_not_found') &&
         !status.contains('INVALID_SIGNATURE');
