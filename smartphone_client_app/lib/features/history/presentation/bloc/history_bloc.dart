@@ -54,7 +54,6 @@ class HistoryBloc extends Bloc<HistoryEvent, HistoryState> {
     RefreshHistoryRequested event,
     Emitter<HistoryState> emit,
   ) async {
-    // Keep current state while refreshing
     try {
       _currentOffset = 0;
       final result = await _fetchLogs(limit: pageSize, offset: _currentOffset);

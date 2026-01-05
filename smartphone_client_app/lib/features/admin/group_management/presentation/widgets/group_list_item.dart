@@ -28,7 +28,6 @@ class GroupListItem extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Group icon
               Container(
                 width: 48,
                 height: 48,

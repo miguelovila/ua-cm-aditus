@@ -14,7 +14,6 @@ class BleService {
       if (_isScanning) {
         _log('Scan results: ${results.length} door(s) found');
 
-        // Log discovered doors
         for (var result in results) {
           _log('  ${result.device.platformName.isEmpty ? "Unknown Door" : result.device.platformName} (${result.device.remoteId}) - RSSI: ${result.rssi} dBm');
         }
@@ -44,13 +43,11 @@ class BleService {
   bool _isScanning = false;
   StreamSubscription<List<ScanResult>>? _scanResultsSubscription;
 
-  // Connection state
   BluetoothDevice? _connectedDevice;
   List<BluetoothService>? _discoveredServices;
   final Map<String, StreamController<String>> _characteristicStreams = {};
 
   Future<void> startScan() async {
-    // Prevent multiple scans at once
     if (_isScanning) {
       _log('Scan already in progress');
       return;
@@ -61,12 +58,10 @@ class BleService {
     _scanStateController.add(true);
 
     try {
-      // Check if Bluetooth is supported
       if (await FlutterBluePlus.isSupported == false) {
         throw Exception('Bluetooth not supported on this device');
       }
 
-      // Check if Bluetooth is turned on
       final adapterState = await FlutterBluePlus.adapterState.first;
       if (adapterState != BluetoothAdapterState.on) {
         throw Exception('Bluetooth is turned off. Please enable Bluetooth.');
@@ -117,7 +112,6 @@ class BleService {
   Future<void> connectToDevice(String deviceId) async {
     _log('Connecting to device: $deviceId');
 
-    // Find device in scan results
     final scanResults = await FlutterBluePlus.scanResults.first;
     final result = scanResults.firstWhere(
       (r) => r.device.remoteId.toString() == deviceId,
@@ -126,7 +120,6 @@ class BleService {
 
     _connectedDevice = result.device;
 
-    // Connect with timeout
     await _connectedDevice!.connect(
       license: License.free, // Free license for educational/non-commercial use
       timeout: const Duration(seconds: 30),
@@ -141,7 +134,6 @@ class BleService {
       _connectedDevice = null;
       _discoveredServices = null;
 
-      // Close all characteristic streams
       for (final controller in _characteristicStreams.values) {
         await controller.close();
       }
@@ -162,7 +154,6 @@ class BleService {
     _discoveredServices = await _connectedDevice!.discoverServices();
     _log('Services discovered: ${_discoveredServices?.length}');
 
-    // Find the door service
     final doorService = _discoveredServices?.firstWhere(
       (s) => s.uuid.toString() == doorServiceUuid,
       orElse: () => throw Exception('Door service not found'),
@@ -179,12 +170,10 @@ class BleService {
       throw Exception('Services not discovered');
     }
 
-    // Find the door service
     final doorService = _discoveredServices!.firstWhere(
       (s) => s.uuid.toString() == doorServiceUuid,
     );
 
-    // Find the characteristic
     final characteristic = doorService.characteristics.firstWhere(
       (c) => c.uuid.toString() == characteristicUuid,
       orElse: () =>
@@ -205,13 +194,11 @@ class BleService {
       throw Exception('Services not discovered');
     }
 
-    // Create stream controller if not exists
     if (!_characteristicStreams.containsKey(characteristicUuid)) {
       _log('Creating new stream for $characteristicUuid');
       _characteristicStreams[characteristicUuid] =
           StreamController<String>.broadcast();
 
-      // Find and subscribe to characteristic
       final doorService = _discoveredServices!.firstWhere(
         (s) => s.uuid.toString() == doorServiceUuid,
       );

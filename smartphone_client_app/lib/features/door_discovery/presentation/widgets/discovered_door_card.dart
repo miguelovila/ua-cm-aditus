@@ -32,7 +32,6 @@ class DiscoveredDoorCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Leading icon container
               Container(
                 width: 48,
                 height: 48,
@@ -47,12 +46,10 @@ class DiscoveredDoorCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              // Content
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Door name
                     Text(
                       door.name,
                       style: const TextStyle(
@@ -61,7 +58,6 @@ class DiscoveredDoorCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // Device ID
                     Text(
                       door.deviceId,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -71,12 +67,10 @@ class DiscoveredDoorCard extends StatelessWidget {
                           ),
                     ),
                     const SizedBox(height: 8),
-                    // Signal strength
                     SignalStrengthIndicator(rssi: door.rssi),
                   ],
                 ),
               ),
-              // Trailing chevron
               Icon(
                 Icons.chevron_right,
                 color: colorScheme.onSurfaceVariant,

@@ -119,7 +119,6 @@ class CryptoService {
     topLevelSeq.add(algorithmSeq);
     topLevelSeq.add(publicKeySeqBitString);
 
-    // Encode to bytes and then to base64
     final encodedBytes = topLevelSeq.encode();
     final dataBase64 = base64.encode(encodedBytes);
 
@@ -130,10 +129,8 @@ class CryptoService {
   String _encodePrivateKeyToPEM(RSAPrivateKey privateKey) {
     final topLevelSeq = ASN1Sequence();
 
-    // Version
     topLevelSeq.add(ASN1Integer(BigInt.from(0)));
 
-    // All the private key components
     topLevelSeq.add(ASN1Integer(privateKey.modulus!));
     topLevelSeq.add(ASN1Integer(privateKey.exponent!));
     topLevelSeq.add(ASN1Integer(privateKey.privateExponent!));
@@ -160,7 +157,6 @@ class CryptoService {
 
   RSAPrivateKey _parsePrivateKeyFromPEM(String pem) {
     try {
-      // Remove PEM header and footer
       String pemContent = pem
           .replaceAll('-----BEGIN RSA PRIVATE KEY-----', '')
           .replaceAll('-----END RSA PRIVATE KEY-----', '')
@@ -168,7 +164,6 @@ class CryptoService {
           .replaceAll('\r', '')
           .trim();
 
-      // Decode from base64
       final bytes = base64.decode(pemContent);
 
       // Parse ASN.1 structure
@@ -197,16 +192,13 @@ class CryptoService {
   String _formatPEM(String base64Data, String type) {
     final lines = <String>[];
 
-    // Add header
     lines.add('-----BEGIN $type-----');
 
-    // Split base64 data into 64-character lines (PEM standard)
     for (int i = 0; i < base64Data.length; i += 64) {
       final end = (i + 64 < base64Data.length) ? i + 64 : base64Data.length;
       lines.add(base64Data.substring(i, end));
     }
 
-    // Add footer
     lines.add('-----END $type-----');
 
     return lines.join('\n');

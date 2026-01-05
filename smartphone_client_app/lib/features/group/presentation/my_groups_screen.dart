@@ -92,7 +92,6 @@ class _GroupCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Group icon and name
             Row(
               children: [
                 Container(
@@ -138,7 +137,6 @@ class _GroupCard extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // Statistics row
             Row(
               children: [
                 Expanded(
@@ -161,7 +159,6 @@ class _GroupCard extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Created date
             Row(
               children: [
                 Icon(

@@ -79,7 +79,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 32),
 
-                    // Title
                     Text(
                       'Welcome to Aditus',
                       style: Theme.of(context).textTheme.headlineSmall

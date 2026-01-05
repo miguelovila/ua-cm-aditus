@@ -101,7 +101,6 @@ class _DeviceRegistrationFormState extends State<_DeviceRegistrationForm> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Icon
                       Icon(
                         Icons.phone_android,
                         size: 90,
@@ -109,7 +108,6 @@ class _DeviceRegistrationFormState extends State<_DeviceRegistrationForm> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Title
                       Text(
                         'Register This Device',
                         style: Theme.of(context).textTheme.headlineSmall
@@ -129,7 +127,6 @@ class _DeviceRegistrationFormState extends State<_DeviceRegistrationForm> {
                       ),
                       const SizedBox(height: 48),
 
-                      // Device name field
                       TextFormField(
                         controller: _deviceNameController,
                         textInputAction: TextInputAction.done,
@@ -228,7 +225,6 @@ class _DeviceRegistrationFormState extends State<_DeviceRegistrationForm> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Register button
                       SizedBox(
                         height: 50,
                         child: FilledButton.icon(
@@ -251,7 +247,6 @@ class _DeviceRegistrationFormState extends State<_DeviceRegistrationForm> {
 
                       const SizedBox(height: 16),
 
-                      // Info card
                       Card(
                         child: Padding(
                           padding: const EdgeInsets.all(16),

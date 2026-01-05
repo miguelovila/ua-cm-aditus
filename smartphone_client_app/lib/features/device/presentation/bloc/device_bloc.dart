@@ -92,7 +92,6 @@ class DeviceBloc extends Bloc<DeviceEvent, DeviceState> {
     try {
       await _deleteDeviceUseCase(event.deviceId);
 
-      // Reload devices list
       final devices = await _getDevicesUseCase();
       final currentDeviceIdStr = await _storageService.getDeviceId();
       final currentDeviceId = currentDeviceIdStr != null

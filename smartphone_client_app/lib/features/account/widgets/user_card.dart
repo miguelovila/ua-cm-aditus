@@ -46,7 +46,6 @@ class _UserCardState extends State<UserCard> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Loading State
     if (_isLoading) {
       return const SizedBox(
         height: 100,
@@ -54,7 +53,6 @@ class _UserCardState extends State<UserCard> {
       );
     }
 
-    // 2. Error State
     if (_user == null) {
       return Center(child: Text('Error: ${_errorMessage ?? "Unknown"}'));
     }
@@ -87,7 +85,6 @@ class _UserCardState extends State<UserCard> {
         padding: const EdgeInsets.all(20.0),
         child: Row(
           children: [
-            // Avatar
             GravatarAvatar(
               email: _user!.email,
               radius: 30,
@@ -95,7 +92,6 @@ class _UserCardState extends State<UserCard> {
 
             const SizedBox(width: 16),
 
-            // Text Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
