@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
-import 'dart:math';
 import '../../../core/api/device_api_service.dart';
 
 class SmartWatchPairingScreen extends StatefulWidget {
   const SmartWatchPairingScreen({super.key});
 
   @override
-  State<SmartWatchPairingScreen> createState() => _SmartWatchPairingScreenState();
+  State<SmartWatchPairingScreen> createState() =>
+      _SmartWatchPairingScreenState();
 }
 
 class _SmartWatchPairingScreenState extends State<SmartWatchPairingScreen> {
@@ -71,9 +71,9 @@ class _SmartWatchPairingScreenState extends State<SmartWatchPairingScreen> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -86,18 +86,15 @@ class _SmartWatchPairingScreenState extends State<SmartWatchPairingScreen> {
 
   void _copyCode() {
     Clipboard.setData(ClipboardData(text: _pairingCode));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Code copied to clipboard')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Code copied to clipboard')));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pair Smartwatch'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Pair Smartwatch'), centerTitle: true),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -142,7 +139,9 @@ class _SmartWatchPairingScreenState extends State<SmartWatchPairingScreen> {
                       Text(
                         'Expires in $_formattedTime',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
                         ),
                       ),
                     ],
